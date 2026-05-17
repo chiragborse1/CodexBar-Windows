@@ -7,7 +7,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private AppSettings settings;
     private CliRunner cliRunner;
     private UsagePopoverWindow? popover;
-    private DashboardForm? diagnostics;
 
     public TrayApplicationContext()
     {
@@ -49,7 +48,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
             popover?.Close();
-            diagnostics?.Dispose();
         }
 
         base.Dispose(disposing);
@@ -95,20 +93,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
         popover?.NavigateToDiagnostics();
     }
 
-    private void ShowDiagnostics()
-    {
-        if (diagnostics is null || diagnostics.IsDisposed)
-        {
-            diagnostics = new DashboardForm(settings, cliRunner);
-            diagnostics.SettingsRequested += (_, _) => ShowSettings();
-            diagnostics.FormClosed += (_, _) => diagnostics = null;
-        }
-
-        diagnostics.Show();
-        diagnostics.WindowState = FormWindowState.Normal;
-        diagnostics.Activate();
-    }
-
     private async Task RefreshUsageAsync(bool forceShow = false)
     {
         if (forceShow)
@@ -119,20 +103,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
         if (popover is not null && !popover.IsClosed && popover.IsVisible)
         {
             await popover.RefreshUsageAsync();
-        }
-
-        if (diagnostics is not null && !diagnostics.IsDisposed)
-        {
-            await diagnostics.RefreshUsageAsync();
-        }
-    }
-
-    private void ShowSettings()
-    {
-        using var form = new SettingsForm(settings, cliRunner);
-        if (form.ShowDialog() == DialogResult.OK)
-        {
-            ApplySettings(form.Settings, showBalloon: true);
         }
     }
 
@@ -146,11 +116,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
         if (popover is not null && !popover.IsClosed)
         {
             popover.ApplySettings(settings, cliRunner);
-        }
-
-        if (diagnostics is not null && !diagnostics.IsDisposed)
-        {
-            diagnostics.ApplySettings(settings, cliRunner);
         }
 
         if (showBalloon)
