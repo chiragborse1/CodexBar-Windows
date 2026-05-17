@@ -746,6 +746,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         actions.Children.Add(actionsStatus);
         root.Children.Add(SectionCard("Diagnostics", "Inspect CLI output without leaving the popover.", actions));
+        root.Children.Add(BuildUpdateSection());
 
         var rawText = lastResult?.StandardOutput.Trim();
         if (string.IsNullOrWhiteSpace(rawText))
@@ -778,6 +779,71 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         root.Children.Add(SectionCard("Provider Compatibility", null, compatibility));
         return root;
+    }
+
+    private Wpf.FrameworkElement BuildUpdateSection()
+    {
+        var status = Caption($"Installed version: {AppInfo.Version}");
+        var checkButton = PrimaryButton("Check Updates");
+        var openButton = SecondaryButton("Open Release");
+        openButton.IsEnabled = false;
+        string? releaseUrl = null;
+
+        checkButton.Click += async (_, _) =>
+        {
+            SetButtonsEnabled(false, checkButton, openButton);
+            SetResult(status, "Checking GitHub releases...", isError: false);
+            try
+            {
+                var update = await UpdateChecker.CheckAsync(CancellationToken.None);
+                if (update is null)
+                {
+                    releaseUrl = null;
+                    openButton.IsEnabled = false;
+                    status.Text = "No GitHub releases found.";
+                    status.Foreground = Brush("#64748B");
+                    return;
+                }
+
+                releaseUrl = update.Url;
+                openButton.IsEnabled = true;
+                if (update.IsNewer)
+                {
+                    SetResult(
+                        status,
+                        $"Update available: {update.TagName}{(update.Prerelease ? " prerelease" : "")}.",
+                        isError: false);
+                }
+                else
+                {
+                    status.Text = $"You are on the latest checked release: {update.TagName}.";
+                    status.Foreground = Brush("#64748B");
+                }
+            }
+            catch (Exception ex)
+            {
+                releaseUrl = null;
+                openButton.IsEnabled = false;
+                SetResult(status, ex.Message, isError: true);
+            }
+            finally
+            {
+                checkButton.IsEnabled = true;
+            }
+        };
+
+        openButton.Click += (_, _) =>
+        {
+            if (!string.IsNullOrWhiteSpace(releaseUrl))
+            {
+                OpenUrl(releaseUrl);
+            }
+        };
+
+        var content = new WpfControls.StackPanel();
+        content.Children.Add(ActionRow(checkButton, openButton));
+        content.Children.Add(status);
+        return SectionCard("Updates", "Check the GitHub release channel without leaving the tray.", content);
     }
 
     private void RenderRows(IReadOnlyList<UsagePayloadRow> rows, CliResult result)
@@ -1335,6 +1401,15 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         {
             SetResult(status, ex.Message, isError: true);
         }
+    }
+
+    private static void OpenUrl(string url)
+    {
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = url,
+            UseShellExecute = true,
+        });
     }
 
     private static WpfControls.Border ProviderIcon(UsagePayloadRow row, WpfMedia.Brush accent)
