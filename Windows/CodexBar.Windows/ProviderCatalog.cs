@@ -57,10 +57,48 @@ internal static class ProviderCatalog
 
     public static string[] ProviderIds => Entries.Select(entry => entry.Id).ToArray();
 
+    public static string[] ApiKeyProviderIds =>
+    [
+        "openai",
+        "claude",
+        "zai",
+        "minimax",
+        "alibaba",
+        "kilo",
+        "synthetic",
+        "openrouter",
+        "elevenlabs",
+        "moonshot",
+        "venice",
+        "copilot",
+        "kimik2",
+        "warp",
+        "codebuff",
+        "crof",
+        "doubao",
+    ];
+
+    public static ProviderCatalogEntry[] ApiKeyEntries => ApiKeyProviderIds
+        .Select(id => Entries.FirstOrDefault(
+            entry => string.Equals(entry.Id, id, StringComparison.OrdinalIgnoreCase)))
+        .Where(entry => entry is not null)
+        .Select(entry => entry!)
+        .ToArray();
+
     public static string DisplayNameFor(string id)
     {
         var entry = Entries.FirstOrDefault(
             item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase));
         return entry?.DisplayName ?? id;
     }
+
+    public static string SupportFor(string id)
+    {
+        var entry = Entries.FirstOrDefault(
+            item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase));
+        return entry?.Support ?? "";
+    }
+
+    public static bool SupportsConfigApiKey(string id) =>
+        ApiKeyProviderIds.Any(provider => string.Equals(provider, id, StringComparison.OrdinalIgnoreCase));
 }

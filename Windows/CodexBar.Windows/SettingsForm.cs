@@ -4,6 +4,13 @@ internal sealed class SettingsForm : Form
 {
     private readonly TextBox cliPathBox;
     private readonly ComboBox providerBox;
+    private readonly ComboBox setupProviderBox;
+    private readonly TextBox apiKeyBox;
+    private readonly CheckBox setupEnableBox;
+    private readonly Button saveApiKeyButton;
+    private readonly Button enableProviderButton;
+    private readonly Button disableProviderButton;
+    private readonly Label providerSetupResultLabel;
     private readonly NumericUpDown refreshIntervalBox;
     private readonly CheckBox launchAtLoginBox;
     private readonly CheckBox startMinimizedBox;
@@ -26,7 +33,7 @@ internal sealed class SettingsForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(680, 460);
+        ClientSize = new Size(760, 560);
         Font = new Font("Segoe UI", 9F);
 
         var root = new TableLayoutPanel
@@ -78,6 +85,47 @@ internal sealed class SettingsForm : Form
             Anchor = AnchorStyles.Left,
             Text = "",
             MaximumSize = new Size(460, 0),
+        };
+
+        setupProviderBox = new ComboBox
+        {
+            Dock = DockStyle.Fill,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+        };
+        foreach (var provider in ProviderCatalog.ApiKeyEntries)
+        {
+            setupProviderBox.Items.Add(new ProviderChoice(provider.Id, provider.DisplayName));
+        }
+
+        if (setupProviderBox.Items.Count > 0)
+        {
+            setupProviderBox.SelectedIndex = 0;
+        }
+
+        apiKeyBox = new TextBox
+        {
+            Dock = DockStyle.Fill,
+            UseSystemPasswordChar = true,
+        };
+        setupEnableBox = new CheckBox
+        {
+            Text = "Enable provider after saving",
+            Checked = true,
+            AutoSize = true,
+        };
+        saveApiKeyButton = new Button { Text = "Save API Key", AutoSize = true };
+        saveApiKeyButton.Click += async (_, _) => await SaveProviderApiKeyAsync();
+        enableProviderButton = new Button { Text = "Enable", AutoSize = true };
+        enableProviderButton.Click += async (_, _) => await ChangeSelectedProviderEnabledAsync(enabled: true);
+        disableProviderButton = new Button { Text = "Disable", AutoSize = true };
+        disableProviderButton.Click += async (_, _) => await ChangeSelectedProviderEnabledAsync(enabled: false);
+        providerSetupResultLabel = new Label
+        {
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Text = "Save an API key here to make the provider available in the tray popover.",
+            MaximumSize = new Size(560, 0),
+            ForeColor = Color.FromArgb(88, 92, 104),
         };
 
         tabs.TabPages.Add(BuildGeneralPage());
@@ -148,12 +196,15 @@ internal sealed class SettingsForm : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 2,
+            RowCount = 3,
             Padding = new Padding(14),
         };
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         page.Controls.Add(root);
+
+        root.Controls.Add(BuildProviderSetupGroup(), 0, 0);
 
         var list = new ListView
         {
@@ -176,7 +227,7 @@ internal sealed class SettingsForm : Form
             item.SubItems.Add(provider.Notes);
             list.Items.Add(item);
         }
-        root.Controls.Add(list, 0, 0);
+        root.Controls.Add(list, 0, 1);
 
         var actions = new FlowLayoutPanel
         {
@@ -185,7 +236,7 @@ internal sealed class SettingsForm : Form
             FlowDirection = FlowDirection.LeftToRight,
             Padding = new Padding(0, 10, 0, 0),
         };
-        root.Controls.Add(actions, 0, 1);
+        root.Controls.Add(actions, 0, 2);
 
         var openConfigButton = new Button { Text = "Open Config File", AutoSize = true };
         openConfigButton.Click += (_, _) => ConfigLocator.OpenConfigFile();
@@ -196,6 +247,54 @@ internal sealed class SettingsForm : Form
         actions.Controls.Add(openFolderButton);
 
         return page;
+    }
+
+    private GroupBox BuildProviderSetupGroup()
+    {
+        var group = new GroupBox
+        {
+            Text = "API-key setup",
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            Padding = new Padding(12),
+        };
+
+        var grid = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            ColumnCount = 2,
+            RowCount = 5,
+        };
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        for (var index = 0; index < 5; index++)
+        {
+            grid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        }
+        group.Controls.Add(grid);
+
+        grid.Controls.Add(new Label { Text = "Provider", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 0);
+        grid.Controls.Add(setupProviderBox, 1, 0);
+        grid.Controls.Add(new Label { Text = "API key", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 1);
+        grid.Controls.Add(apiKeyBox, 1, 1);
+        grid.Controls.Add(setupEnableBox, 1, 2);
+
+        var actionRow = new FlowLayoutPanel
+        {
+            FlowDirection = FlowDirection.LeftToRight,
+            AutoSize = true,
+            Dock = DockStyle.Fill,
+            Padding = new Padding(0, 4, 0, 0),
+        };
+        actionRow.Controls.Add(saveApiKeyButton);
+        actionRow.Controls.Add(enableProviderButton);
+        actionRow.Controls.Add(disableProviderButton);
+        grid.Controls.Add(actionRow, 1, 3);
+
+        grid.Controls.Add(providerSetupResultLabel, 1, 4);
+
+        return group;
     }
 
     private TabPage BuildAdvancedPage()
@@ -293,6 +392,114 @@ internal sealed class SettingsForm : Form
         testResultLabel.Text = result.Succeeded ? result.StandardOutput.Trim() : result.CombinedOutput;
     }
 
+    private async Task SaveProviderApiKeyAsync()
+    {
+        var provider = SelectedProviderChoice();
+        if (provider is null)
+        {
+            SetProviderSetupMessage("Select a provider first.", isError: true);
+            return;
+        }
+
+        var apiKey = apiKeyBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            SetProviderSetupMessage("Enter an API key before saving.", isError: true);
+            return;
+        }
+
+        SetProviderSetupBusy(true, "Saving...");
+        try
+        {
+            CaptureSettings();
+            var runner = new CliRunner(Settings);
+            var result = await runner.SetApiKeyAsync(
+                provider.Id,
+                apiKey,
+                setupEnableBox.Checked,
+                CancellationToken.None);
+            if (result.Succeeded)
+            {
+                apiKeyBox.Clear();
+                SetProviderSetupMessage(
+                    setupEnableBox.Checked
+                        ? $"Saved API key and enabled {provider.DisplayName}."
+                        : $"Saved API key for {provider.DisplayName}.",
+                    isError: false);
+            }
+            else
+            {
+                SetProviderSetupMessage(ShortResultMessage(result), isError: true);
+            }
+        }
+        finally
+        {
+            SetProviderSetupBusy(false);
+        }
+    }
+
+    private async Task ChangeSelectedProviderEnabledAsync(bool enabled)
+    {
+        var provider = SelectedProviderChoice();
+        if (provider is null)
+        {
+            SetProviderSetupMessage("Select a provider first.", isError: true);
+            return;
+        }
+
+        SetProviderSetupBusy(true, enabled ? "Enabling..." : "Disabling...");
+        try
+        {
+            CaptureSettings();
+            var runner = new CliRunner(Settings);
+            var result = await runner.SetProviderEnabledAsync(provider.Id, enabled, CancellationToken.None);
+            SetProviderSetupMessage(
+                result.Succeeded
+                    ? $"{provider.DisplayName} is now {(enabled ? "enabled" : "disabled")}."
+                    : ShortResultMessage(result),
+                isError: !result.Succeeded);
+        }
+        finally
+        {
+            SetProviderSetupBusy(false);
+        }
+    }
+
+    private ProviderChoice? SelectedProviderChoice() => setupProviderBox.SelectedItem as ProviderChoice;
+
+    private void SetProviderSetupBusy(bool busy, string? message = null)
+    {
+        saveApiKeyButton.Enabled = !busy;
+        enableProviderButton.Enabled = !busy;
+        disableProviderButton.Enabled = !busy;
+        setupProviderBox.Enabled = !busy;
+        apiKeyBox.Enabled = !busy;
+        setupEnableBox.Enabled = !busy;
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            SetProviderSetupMessage(message, isError: false);
+        }
+    }
+
+    private void SetProviderSetupMessage(string message, bool isError)
+    {
+        providerSetupResultLabel.ForeColor = isError
+            ? Color.FromArgb(176, 42, 55)
+            : Color.FromArgb(22, 121, 75);
+        providerSetupResultLabel.Text = message;
+    }
+
+    private static string ShortResultMessage(CliResult result)
+    {
+        var text = result.CombinedOutput.Trim();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            text = $"CLI exited with code {result.ExitCode}.";
+        }
+
+        return text.Length <= 260 ? text : $"{text[..260]}...";
+    }
+
     private void CaptureSettings()
     {
         Settings.CliPath = string.IsNullOrWhiteSpace(cliPathBox.Text) ? null : cliPathBox.Text.Trim();
@@ -300,5 +507,10 @@ internal sealed class SettingsForm : Form
         Settings.RefreshIntervalMinutes = (int)refreshIntervalBox.Value;
         Settings.LaunchAtLogin = launchAtLoginBox.Checked;
         Settings.StartMinimized = startMinimizedBox.Checked;
+    }
+
+    private sealed record ProviderChoice(string Id, string DisplayName)
+    {
+        public override string ToString() => $"{DisplayName} ({Id})";
     }
 }
