@@ -6,7 +6,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly System.Windows.Forms.Timer refreshTimer;
     private AppSettings settings;
     private CliRunner cliRunner;
-    private UsagePopoverForm? popover;
+    private UsagePopoverWindow? popover;
     private DashboardForm? diagnostics;
 
     public TrayApplicationContext()
@@ -48,7 +48,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
             refreshTimer.Dispose();
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
-            popover?.Dispose();
+            popover?.Close();
             diagnostics?.Dispose();
         }
 
@@ -73,12 +73,12 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     private void ShowPopover()
     {
-        if (popover is null || popover.IsDisposed)
+        if (popover is null || popover.IsClosed)
         {
-            popover = new UsagePopoverForm(settings, cliRunner);
+            popover = new UsagePopoverWindow(settings, cliRunner);
             popover.SettingsRequested += (_, _) => ShowSettings();
             popover.DiagnosticsRequested += (_, _) => ShowDiagnostics();
-            popover.FormClosed += (_, _) => popover = null;
+            popover.Closed += (_, _) => popover = null;
         }
 
         popover.ShowNearCursor();
@@ -105,7 +105,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
             ShowPopover();
         }
 
-        if (popover is not null && !popover.IsDisposed && popover.Visible)
+        if (popover is not null && !popover.IsClosed && popover.IsVisible)
         {
             await popover.RefreshUsageAsync();
         }
@@ -126,7 +126,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
             cliRunner = new CliRunner(settings);
             ApplyTimerInterval();
 
-            if (popover is not null && !popover.IsDisposed)
+            if (popover is not null && !popover.IsClosed)
             {
                 popover.ApplySettings(settings, cliRunner);
             }
