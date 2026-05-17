@@ -14,10 +14,11 @@ engine in Swift while giving Windows users a normal tray entry point.
 ```powershell
 swift build -c release --product CodexBarCLI
 dotnet publish Windows\CodexBar.Windows\CodexBar.Windows.csproj -c Release -r win-x64 --self-contained false
+pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
 ```
 
-Copy `CodexBarCLI.exe` beside `CodexBar-Windows.exe` in the publish folder.
-The release workflow does this automatically.
+The package script copies `CodexBarCLI.exe` and Swift runtime DLLs beside
+`CodexBar-Windows.exe`. The release workflow runs the same script.
 
 ## Runtime Files
 
@@ -29,6 +30,8 @@ The release workflow does this automatically.
 
 - system tray icon and context menu
 - dashboard window
+- structured usage dashboard backed by CLI JSON
+- raw CLI output view for debugging
 - usage refresh through the CLI backend
 - provider selection
 - CLI path override
@@ -38,6 +41,6 @@ The release workflow does this automatically.
 
 ## Packaging
 
-The `Release` workflow uploads `codexbar-windows-x86_64`. Inside that
-artifact is `CodexBar-Windows-<ref>-windows-x86_64.zip`, which contains the app,
-CLI backend, runtime files, `VERSION`, and `README_RUN.txt`.
+The `Release` workflow uploads `codexbar-windows-x86_64`. Inside that artifact
+is `CodexBar-Windows-<ref>-windows-x86_64.zip`, which contains the app, CLI
+backend, Swift runtime DLLs, publish files, `VERSION`, and `README_RUN.txt`.

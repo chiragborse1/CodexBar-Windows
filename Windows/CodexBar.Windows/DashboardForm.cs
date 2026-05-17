@@ -5,6 +5,7 @@ namespace CodexBar.Windows;
 internal sealed class DashboardForm : Form
 {
     private readonly Label statusLabel;
+    private readonly DataGridView summaryGrid;
     private readonly RichTextBox outputBox;
     private readonly Button refreshButton;
     private readonly Button settingsButton;
@@ -79,6 +80,44 @@ internal sealed class DashboardForm : Form
         };
         toolbar.Controls.Add(statusLabel);
 
+        var tabs = new TabControl
+        {
+            Dock = DockStyle.Fill,
+        };
+        root.Controls.Add(tabs, 0, 2);
+
+        var summaryPage = new TabPage("Dashboard");
+        tabs.TabPages.Add(summaryPage);
+
+        summaryGrid = new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            AutoGenerateColumns = false,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            AllowUserToResizeRows = false,
+            ReadOnly = true,
+            RowHeadersVisible = false,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            MultiSelect = false,
+            BackgroundColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle,
+        };
+        AddTextColumn("Provider", nameof(UsagePayloadRow.Provider), 95);
+        AddTextColumn("Account", nameof(UsagePayloadRow.Account), 150);
+        AddTextColumn("Source", nameof(UsagePayloadRow.Source), 110);
+        AddTextColumn("Primary", nameof(UsagePayloadRow.Primary), 190);
+        AddTextColumn("Secondary", nameof(UsagePayloadRow.Secondary), 190);
+        AddTextColumn("Credits", nameof(UsagePayloadRow.Credits), 90);
+        AddTextColumn("Cost", nameof(UsagePayloadRow.Cost), 110);
+        AddTextColumn("Status", nameof(UsagePayloadRow.Status), 140);
+        AddTextColumn("Updated", nameof(UsagePayloadRow.Updated), 165);
+        AddTextColumn("Error", nameof(UsagePayloadRow.Error), 260);
+        summaryPage.Controls.Add(summaryGrid);
+
+        var rawPage = new TabPage("Raw Output");
+        tabs.TabPages.Add(rawPage);
+
         outputBox = new RichTextBox
         {
             Dock = DockStyle.Fill,
@@ -88,7 +127,7 @@ internal sealed class DashboardForm : Form
             BackColor = Color.FromArgb(252, 252, 252),
             WordWrap = false,
         };
-        root.Controls.Add(outputBox, 0, 2);
+        rawPage.Controls.Add(outputBox);
 
         Shown += async (_, _) => await RefreshUsageAsync();
     }
@@ -115,7 +154,7 @@ internal sealed class DashboardForm : Form
         try
         {
             var stopwatch = Stopwatch.StartNew();
-            var result = await cliRunner.UsageTextAsync(token);
+            var result = await cliRunner.UsageJsonAsync(token);
             stopwatch.Stop();
 
             if (token.IsCancellationRequested)
@@ -123,22 +162,61 @@ internal sealed class DashboardForm : Form
                 return;
             }
 
-            if (result.Succeeded)
+            var output = string.IsNullOrWhiteSpace(result.StandardOutput)
+                ? result.CombinedOutput
+                : result.StandardOutput.Trim();
+            outputBox.Text = string.IsNullOrWhiteSpace(output) ? "No usage output returned." : output;
+
+            var parsedRows = TryParseRows(result.StandardOutput);
+            if (parsedRows.Count > 0)
             {
-                outputBox.Text = string.IsNullOrWhiteSpace(result.StandardOutput)
-                    ? "No usage output returned."
-                    : result.StandardOutput.Trim();
+                summaryGrid.DataSource = parsedRows;
+                statusLabel.Text = result.Succeeded
+                    ? $"Updated {DateTime.Now:t} in {stopwatch.Elapsed.TotalSeconds:0.0}s"
+                    : $"Updated with provider errors, code {result.ExitCode}";
+            }
+            else if (result.Succeeded)
+            {
+                summaryGrid.DataSource = Array.Empty<UsagePayloadRow>();
                 statusLabel.Text = $"Updated {DateTime.Now:t} in {stopwatch.Elapsed.TotalSeconds:0.0}s";
             }
             else
             {
-                outputBox.Text = result.CombinedOutput;
+                summaryGrid.DataSource = Array.Empty<UsagePayloadRow>();
                 statusLabel.Text = $"CLI exited with code {result.ExitCode}";
             }
         }
         finally
         {
             refreshButton.Enabled = true;
+        }
+    }
+
+    private void AddTextColumn(string header, string propertyName, int width)
+    {
+        summaryGrid.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            HeaderText = header,
+            DataPropertyName = propertyName,
+            Width = width,
+            SortMode = DataGridViewColumnSortMode.Automatic,
+        });
+    }
+
+    private static IReadOnlyList<UsagePayloadRow> TryParseRows(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return [];
+        }
+
+        try
+        {
+            return UsagePayloadParser.Parse(json);
+        }
+        catch
+        {
+            return [];
         }
     }
 

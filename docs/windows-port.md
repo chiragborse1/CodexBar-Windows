@@ -21,7 +21,10 @@ Bring a complete CodexBar-Windows experience to Windows users:
 - `CodexBarCLI.exe` builds on `windows-latest`.
 - Windows CI smoke-tests both the CLI and the tray app.
 - Release packaging uploads `codexbar-windows-x86_64`, containing the tray app,
-  CLI backend, runtime files, `VERSION`, and `README_RUN.txt`.
+  CLI backend, Swift runtime DLLs, publish files, `VERSION`, and
+  `README_RUN.txt`.
+- The dashboard parses CLI JSON into provider summary rows and keeps raw output
+  available for debugging.
 - Browser-cookie extraction is stubbed on Windows.
 - PTY-backed interactive provider helpers are stubbed on Windows.
 - The localhost `serve` command is stubbed on Windows while Foundation
@@ -65,13 +68,13 @@ The tray app provides:
 
 ## Next Steps
 
-1. Improve the tray dashboard with structured JSON cards.
-2. Add Windows Credential Manager storage for secrets.
-3. Add Edge/Chrome/Firefox cookie import.
-4. Add ConPTY support for interactive provider CLIs.
-5. Add `.msix` or WiX installer packaging.
+1. Add Windows Credential Manager storage for secrets.
+2. Add Edge/Chrome/Firefox cookie import.
+3. Add ConPTY support for interactive provider CLIs.
+4. Add `.msix` or WiX installer packaging.
+5. Add signed release builds and an update channel.
 
 ## Repo Policy
 
 Windows changes should stay isolated behind platform boundaries. Cross-platform
-fixes should avoid breaking macOS/Linux behavior in the shared provider engine.
+fixes should preserve the shared provider engine behavior used by the CLI.

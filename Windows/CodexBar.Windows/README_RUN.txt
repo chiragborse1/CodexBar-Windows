@@ -12,6 +12,9 @@ tray icon or by double-clicking it.
 The bundled CLI backend is:
   CodexBarCLI.exe
 
+The zip also includes Swift runtime DLLs needed by the CLI. You do not need to
+install Swift to run the packaged app.
+
 Useful CLI checks:
   CodexBarCLI.exe --version
   CodexBarCLI.exe config validate --format json --pretty
@@ -19,3 +22,6 @@ Useful CLI checks:
 
 Provider credentials and toggles are stored in:
   %USERPROFILE%\.codexbar\config.json
+
+App settings are stored in:
+  %APPDATA%\CodexBar-Windows\windows-app-settings.json

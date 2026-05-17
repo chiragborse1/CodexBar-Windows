@@ -7,6 +7,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>CodexBar-Windows</AssemblyName>
     <RootNamespace>CodexBar.Windows</RootNamespace>
+    <Authors>Chirag Borse</Authors>
+    <Company>Chirag Borse</Company>
+    <Product>CodexBar-Windows</Product>
+    <Copyright>Copyright (c) 2026 Chirag Borse</Copyright>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Version>0.1.0</Version>

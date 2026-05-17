@@ -49,19 +49,7 @@ internal sealed class SettingsForm : Form
 
         root.Controls.Add(new Label { Text = "Provider", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 1);
         providerBox = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDown };
-        providerBox.Items.AddRange(
-        [
-            "all",
-            "codex",
-            "claude",
-            "openai",
-            "copilot",
-            "gemini",
-            "kilo",
-            "synthetic",
-            "grok",
-            "cursor",
-        ]);
+        providerBox.Items.AddRange(ProviderCatalog.ProviderIds);
         providerBox.Text = Settings.Provider;
         root.Controls.Add(providerBox, 1, 1);
 
