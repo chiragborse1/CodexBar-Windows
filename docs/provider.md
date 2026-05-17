@@ -87,7 +87,7 @@ Rule: providers do not talk to `FileManager`, `Security`, or “browser internal
   - `<ProviderID>Probe.swift` / `<ProviderID>Fetcher.swift`
   - `<ProviderID>Models.swift`
   - `<ProviderID>Parser.swift` (if text/HTML parsing)
-- `Sources/CodexBar/Providers/<ProviderID>/`
+- `Sources/CodexBarCore/Providers/<ProviderID>/`
   - `<ProviderID>ProviderImplementation.swift` (settings/login UI hooks only)
 
 ## Minimal provider example (copy-paste)
@@ -173,7 +173,7 @@ Checklist:
   Implement `static func makeDescriptor() -> ProviderDescriptor`.
 - Attach `@ProviderImplementationRegistration` to the implementation type (macros auto-register).
   - No manual list edits.
-- Add `Sources/CodexBar/Providers/<ProviderID>/<ProviderID>ProviderImplementation.swift`:
+- Add `Sources/CodexBarCore/Providers/<ProviderID>/<ProviderID>ProviderImplementation.swift`:
   - `ProviderImplementation` only for settings/login UI hooks.
 - Add icons + color in descriptor:
   - `iconName` must match `ProviderIcon-<id>` asset.

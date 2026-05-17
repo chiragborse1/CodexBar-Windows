@@ -8,11 +8,11 @@ final class FileLogSink: @unchecked Sendable {
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library", isDirectory: true)
         return base
             .appendingPathComponent("Logs", isDirectory: true)
-            .appendingPathComponent("CodexBar", isDirectory: true)
-            .appendingPathComponent("CodexBar.log")
+            .appendingPathComponent("CodexBar-Windows", isDirectory: true)
+            .appendingPathComponent("CodexBar-Windows.log")
     }()
 
-    private let queue = DispatchQueue(label: "com.steipete.codexbar.filelog", qos: .utility)
+    private let queue = DispatchQueue(label: "com.chiragborse.codexbarwindows.filelog", qos: .utility)
     private let fileManager: FileManager
     private var isEnabled = false
     private var fileHandle: FileHandle?

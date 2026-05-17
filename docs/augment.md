@@ -67,7 +67,7 @@ Recognized cookie names:
 - `session`, `web_rpc_proxy_session` (Augment-specific)
 
 Cached cookies:
-- Keychain cache `com.steipete.codexbar.cache` (account `cookie.augment`, source + timestamp). Reused before re-importing
+- Keychain cache `com.chiragborse.codexbarwindows.cache` (account `cookie.augment`, source + timestamp). Reused before re-importing
   from browsers.
 
 ### Auggie CLI Integration
@@ -149,7 +149,8 @@ This displays:
 
 ## Privacy & Security
 
-- Cookies are stored securely in macOS Keychain
+- Cookies are stored in the local CodexBar-Windows cache/config flow; Windows
+  Credential Manager storage is planned.
 - Only cookies for `*.augmentcode.com` domains are imported
 - Cookies are filtered by domain before sending to API endpoints
 - No cookies are sent to third-party services
@@ -180,4 +181,4 @@ This prevents cookies from other subdomains being sent to the API.
 ## Related Documentation
 
 - [Provider Authoring Guide](provider.md) - How to create new providers
-- [Development Guide](DEVELOPMENT.md) - Build and test instructions
+- [Windows App](windows-app.md) - Build and package instructions

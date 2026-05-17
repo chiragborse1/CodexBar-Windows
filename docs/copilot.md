@@ -45,5 +45,4 @@ Copilot uses GitHub OAuth device flow and the Copilot internal usage API. No bro
 ## Key files
 - `Sources/CodexBarCore/Providers/Copilot/CopilotUsageFetcher.swift`
 - `Sources/CodexBarCore/Providers/Copilot/CopilotDeviceFlow.swift`
-- `Sources/CodexBar/Providers/Copilot/CopilotLoginFlow.swift`
-- `Sources/CodexBar/CopilotTokenStore.swift` (legacy migration helper)
+- `Sources/CodexBarCore/Providers/Copilot/CopilotLoginFlow.swift`

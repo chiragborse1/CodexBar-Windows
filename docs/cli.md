@@ -6,36 +6,31 @@ read_when:
   - "Aligning menubar and CLI output/behavior."
 ---
 
-# CodexBar CLI
+# CodexBar-Windows CLI
 
-A lightweight Commander-based CLI that mirrors the menu bar app’s provider fetchers and config file.
-Use it when you need usage numbers in scripts, CI, or dashboards without UI.
+A lightweight CLI used by the Windows tray app and by terminal workflows. Use
+it when you need usage numbers in scripts, CI, or dashboards without UI.
 
 ## Install
-- In the app: **Preferences → Advanced → Install CLI**. This symlinks `CodexBarCLI` to `/usr/local/bin/codexbar` and `/opt/homebrew/bin/codexbar`.
-- From the repo, after installing `CodexBar.app` in `/Applications`: `./bin/install-codexbar-cli.sh` (same symlink targets).
-- Manual: `ln -sf "/Applications/CodexBar.app/Contents/Helpers/CodexBarCLI" /usr/local/bin/codexbar`.
 
-### Release tarball install (macOS/Linux)
-- Homebrew formula (Linux today): `brew install steipete/tap/codexbar`.
-- Download release tarballs from GitHub Releases:
-  - macOS: `CodexBarCLI-v<tag>-macos-arm64.tar.gz`, `CodexBarCLI-v<tag>-macos-x86_64.tar.gz`
-  - Linux: `CodexBarCLI-v<tag>-linux-aarch64.tar.gz`, `CodexBarCLI-v<tag>-linux-x86_64.tar.gz`
-- Extract and run `./codexbar` (symlink) or `./CodexBarCLI`.
+Download the Windows zip from GitHub Releases or from the `Release` workflow
+artifact, extract it, and run `CodexBarCLI.exe` from the same folder as
+`CodexBar-Windows.exe`.
 
-```
-tar -xzf CodexBarCLI-v0.17.0-macos-x86_64.tar.gz
-./codexbar --version
-./codexbar usage --format json --pretty
+```powershell
+.\CodexBarCLI.exe --version
+.\CodexBarCLI.exe usage --format json --pretty
 ```
 
 ## Build
-- `./Scripts/package_app.sh` (or `./Scripts/compile_and_run.sh`) bundles `CodexBarCLI` into `CodexBar.app/Contents/Helpers/CodexBarCLI`.
-- Standalone: `swift build -c release --product CodexBarCLI` (binary at `./.build/release/CodexBarCLI`).
-- Dependencies: Swift 6.2+, Commander package (`https://github.com/steipete/Commander`).
+
+- Standalone: `swift build -c release --product CodexBarCLI`.
+- Full Windows package: `pwsh .\Windows\package-windows.ps1 -ReleaseTag dev`.
+- Dependencies: Swift 6.2+ and .NET 8 for the Windows tray app.
 
 ## Configuration
-CodexBar reads `~/.codexbar/config.json` for provider settings, secrets, and ordering.
+CodexBar-Windows reads `~/.codexbar/config.json` for provider settings,
+secrets, and ordering.
 See `docs/configuration.md` for the schema.
 
 ## Command
@@ -49,7 +44,7 @@ See `docs/configuration.md` for the schema.
   - `--refresh-interval <seconds>` defaults to `60` and controls the in-memory response cache TTL.
   - v1 binds to `127.0.0.1` only. It does not expose remote bind, auth, CORS, TLS, or daemon mode.
   - Endpoints: `GET /health`, `GET /usage`, `GET /usage?provider=<id|both|all>`, `GET /cost`, `GET /cost?provider=<id|both|all>`.
-- `codexbar cache clear` clears local CodexBar caches.
+- `CodexBarCLI.exe cache clear` clears local CodexBar-Windows caches.
   - `--cookies` removes cached browser-cookie headers from the CodexBar Keychain cache.
   - `--cookies --provider <id>` removes browser-cookie cache entries for that provider, including managed Codex account scopes.
   - `--cost` removes local cost-usage scan caches.
@@ -65,7 +60,7 @@ See `docs/configuration.md` for the schema.
   - `--antigravity-plan-debug` (debug: print Antigravity planInfo fields to stderr).
 - `--source <auto|web|cli|oauth|api>` (default: `auto`).
     - `auto`: provider-specific fallback order from `docs/providers.md`.
-    - `web` (macOS only): web-only where that provider exposes an explicit web source; no CLI/API fallback.
+    - `web`: web-only where that provider exposes an explicit web source; currently not implemented on Windows.
     - `cli`: CLI/local-helper source where the provider exposes one (for example Codex RPC/PTy, Claude PTY, Kilo CLI fallback, Kiro CLI, local probes).
     - `oauth`: OAuth-backed source where supported (Codex, Claude, Vertex AI).
     - `api`: API-key/token flow when the provider supports it (z.ai, Gemini, Alibaba, Copilot, Kilo, Kimi K2, MiniMax, Warp, OpenRouter, Synthetic, DeepSeek, Moonshot, Codebuff).
@@ -76,7 +71,7 @@ See `docs/configuration.md` for the schema.
     - Claude web: claude.ai API (session + weekly usage, plus account metadata when available).
     - Command Code web: commandcode.ai browser session cookies for monthly credit usage.
     - Kilo auto: app.kilo.ai API first, then CLI auth fallback (`~/.local/share/kilo/auth.json`) on missing/unauthorized API credentials.
-    - Linux: web-backed `auto`/`web` modes are not supported; CLI prints an error and exits non-zero for providers that require browser/WebKit access.
+    - Windows: web-backed `auto`/`web` modes are not supported yet; CLI prints an error and exits non-zero for providers that require browser/WebKit access.
 - Global flags: `-h/--help`, `-V/--version`, `-v/--verbose`, `--no-color`, `--log-level <trace|verbose|debug|info|warning|error|critical>`, `--json-output`, `--json-only`.
   - `--json-output`: JSONL logs on stderr (machine-readable).
   - `--json-only`: suppress non-JSON output; errors become JSON payloads.
@@ -95,7 +90,7 @@ For Claude, token accounts accept either `sessionKey` cookies or OAuth access to
 OAuth usage requires the `user:profile` scope; inference-only tokens will return an error.
 
 ### Cost JSON payload
-`codexbar cost --format json` emits an array of payloads (one per provider).
+`CodexBarCLI.exe cost --format json` emits an array of payloads (one per provider).
 - `provider`, `source`, `updatedAt`
 - `sessionTokens`, `sessionCostUSD`
 - `last30DaysTokens`, `last30DaysCostUSD`
@@ -104,29 +99,25 @@ OAuth usage requires the `user:profile` scope; inference-only tokens will return
 
 ## Example usage
 ```
-codexbar                          # text, respects app toggles
-codexbar --provider claude        # force Claude
-codexbar --provider all           # query all registered providers
-codexbar --format json --pretty   # machine output
-codexbar --format json --provider both
-codexbar cost                     # local cost usage (last 30 days + today)
-codexbar cost --provider claude --format json --pretty
-codexbar serve --port 8080        # localhost HTTP JSON server
-COPILOT_API_TOKEN=... codexbar --provider copilot --format json --pretty
-codexbar --status                 # include status page indicator/description
-codexbar --provider codex --source oauth --format json --pretty
-codexbar --provider codex --source web --format json --pretty
-codexbar --provider claude --account steipete@gmail.com
-codexbar --provider claude --all-accounts --format json --pretty
-codexbar --json-only --format json --pretty
-codexbar --provider gemini --source api --format json --pretty
-KILO_API_KEY=... codexbar --provider kilo --source api --format json --pretty
-MOONSHOT_API_KEY=... codexbar --provider moonshot --source api --format json --pretty
-codexbar config validate --format json --pretty
-codexbar config dump --pretty
-codexbar cache clear --cookies
-codexbar cache clear --cookies --provider claude
-codexbar cache clear --all --format json --pretty
+.\CodexBarCLI.exe                          # text, respects config toggles
+.\CodexBarCLI.exe --provider claude        # force Claude
+.\CodexBarCLI.exe --provider all           # query all registered providers
+.\CodexBarCLI.exe --format json --pretty   # machine output
+.\CodexBarCLI.exe cost                     # local cost usage
+.\CodexBarCLI.exe cost --provider claude --format json --pretty
+.\CodexBarCLI.exe --status                 # include status page indicator/description
+.\CodexBarCLI.exe --provider codex --source oauth --format json --pretty
+.\CodexBarCLI.exe --provider claude --account user@example.com
+.\CodexBarCLI.exe --provider claude --all-accounts --format json --pretty
+.\CodexBarCLI.exe --json-only --format json --pretty
+.\CodexBarCLI.exe --provider gemini --source api --format json --pretty
+$env:KILO_API_KEY="..."; .\CodexBarCLI.exe --provider kilo --source api --format json --pretty
+$env:MOONSHOT_API_KEY="..."; .\CodexBarCLI.exe --provider moonshot --source api --format json --pretty
+.\CodexBarCLI.exe config validate --format json --pretty
+.\CodexBarCLI.exe config dump --pretty
+.\CodexBarCLI.exe cache clear --cookies
+.\CodexBarCLI.exe cache clear --cookies --provider claude
+.\CodexBarCLI.exe cache clear --all --format json --pretty
 ```
 
 ### Sample output (text)

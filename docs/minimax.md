@@ -52,4 +52,4 @@ falls back across the provider's supported web requests when needed.
 ## Key files
 - `Sources/CodexBarCore/Providers/MiniMax/MiniMaxUsageFetcher.swift`
 - `Sources/CodexBarCore/Providers/MiniMax/MiniMaxProviderDescriptor.swift`
-- `Sources/CodexBar/Providers/MiniMax/MiniMaxProviderImplementation.swift`
+- `Sources/CodexBarCore/Providers/MiniMax/MiniMaxProviderImplementation.swift`

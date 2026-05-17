@@ -49,7 +49,7 @@ Usage source picker:
   3) Firefox: `~/Library/Application Support/Firefox/Profiles/*/cookies.sqlite`
   - Domains loaded: `chatgpt.com`, `openai.com`.
   - No cookie-name filter; we import all matching domain cookies.
-- Cached cookies: Keychain cache `com.steipete.codexbar.cache` (account `cookie.codex`, source + timestamp).
+- Cached cookies: Keychain cache `com.chiragborse.codexbarwindows.cache` (account `cookie.codex`, source + timestamp).
   Reused before re-importing from browsers.
 - Manual cookie header:
   - Paste the `Cookie:` header from a `chatgpt.com` request in Preferences → Providers → Codex.
@@ -81,11 +81,9 @@ Usage source picker:
   - Credits snapshot (balance, hasCredits, unlimited).
   - Account identity (email + plan type) when available.
 - App-server errors are terminal for the CLI strategy, except when Codex includes a recoverable `wham/usage` JSON body in the error text.
-- If macOS blocks or quarantines the `codex` executable, CodexBar records the launch failure and skips background CLI
-  launches for 30 minutes. Use a manual refresh after reinstalling or unblocking `codex` to retry immediately.
-- If managed Codex account login fails after macOS moved `codex` to Trash, first confirm `codex --version` works in
-  Terminal. Check `which -a codex` for stale duplicate installs, then run
-  `npm install -g --include=optional @openai/codex@latest` before retrying Add Account.
+- If CLI launch fails, CodexBar-Windows records the failure and skips repeated
+  background launches for a short cooldown. Use a manual refresh after fixing
+  `codex --version` to retry immediately.
 
 ### Codex CLI PTY diagnostics (`/status`)
 - Manual/debug parser only; automatic background refresh and `CodexBarCLI usage --source cli` do not launch bare Codex TUI.
@@ -122,8 +120,10 @@ Usage source picker:
   - pi assistant usage is bucketed by assistant-turn timestamp, so mixed-model pi sessions can contribute to multiple
     days/models correctly.
 - Cache:
-  - Native + merged provider cache: `~/Library/Caches/CodexBar/cost-usage/codex-v2.json`
-  - pi session cache: `~/Library/Caches/CodexBar/cost-usage/pi-sessions-v1.json`
+  - Native + merged provider cache: local user cache directory under
+    `CodexBar-Windows/cost-usage/codex-v2.json`.
+  - pi session cache: local user cache directory under
+    `CodexBar-Windows/cost-usage/pi-sessions-v1.json`.
 - Window: last 30 days (rolling), with a 60s minimum refresh interval.
 
 ## Key files

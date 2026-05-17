@@ -28,7 +28,7 @@ Gemini uses the Gemini CLI OAuth credentials and private quota APIs. No browser 
 
 ## OAuth client ID/secret extraction
 - We locate the installed `gemini` binary, then search for:
-  - Homebrew nested path:
+  - package-manager nested path:
     - `.../libexec/lib/node_modules/@google/gemini-cli/node_modules/@google/gemini-cli-core/dist/src/code_assist/oauth2.js`
   - Bun/npm sibling path:
     - `.../node_modules/@google/gemini-cli-core/dist/src/code_assist/oauth2.js`

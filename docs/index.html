@@ -9,7 +9,6 @@
       content="CodexBar-Windows tracks AI coding-provider usage from a Windows tray app and CLI."
     />
     <meta name="theme-color" content="#101418" />
-    <link rel="icon" href="./icon.png" type="image/png" />
     <style>
       :root {
         color-scheme: light dark;
@@ -35,9 +34,15 @@
         margin-bottom: 36px;
       }
 
-      img {
+      .mark {
         width: 44px;
         height: 44px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: #1a73e8;
+        color: #fff;
+        font-weight: 800;
       }
 
       h1 {
@@ -103,7 +108,7 @@
   <body>
     <main>
       <header>
-        <img src="./icon.png" alt="" />
+        <div class="mark" aria-hidden="true">CB</div>
         <h1>CodexBar-Windows</h1>
       </header>
 

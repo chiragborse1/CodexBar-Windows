@@ -38,5 +38,4 @@ Bearer token and displays the returned request quota and dollar credit balance.
 ## Related files
 
 - `Sources/CodexBarCore/Providers/Crof/`
-- `Sources/CodexBar/Providers/Crof/`
-- `Tests/CodexBarTests/CrofUsageFetcherTests.swift`
+- `Sources/CodexBarCore/Providers/Crof/`

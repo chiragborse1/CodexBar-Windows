@@ -64,9 +64,5 @@ and whether auto top-up is enabled.
 ## Related files
 
 - `Sources/CodexBarCore/Providers/Codebuff/` — descriptor, fetcher, snapshot,
-  settings reader, error types.
-- `Sources/CodexBar/Providers/Codebuff/` — settings store bridge + macOS
-  settings pane implementation.
-- `Tests/CodexBarTests/CodebuffSettingsReaderTests.swift`,
-  `CodebuffUsageFetcherTests.swift`, and the Codebuff extensions in
-  `ProviderTokenResolverTests.swift`.
+  settings reader, and error types.
+- `Sources/CodexBarCLI` — command-line access used by the Windows tray app.

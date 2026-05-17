@@ -38,5 +38,4 @@ key for that legacy endpoint to pull your remaining balance and usage.
 - `Sources/CodexBarCore/Providers/KimiK2/KimiK2ProviderDescriptor.swift` (descriptor + fetch strategy)
 - `Sources/CodexBarCore/Providers/KimiK2/KimiK2UsageFetcher.swift` (HTTP client + parser)
 - `Sources/CodexBarCore/Providers/KimiK2/KimiK2SettingsReader.swift` (env var parsing)
-- `Sources/CodexBar/Providers/KimiK2/KimiK2ProviderImplementation.swift` (settings field + activation logic)
-- `Sources/CodexBar/KimiK2TokenStore.swift` (legacy migration helper)
+- `Sources/CodexBarCore/Providers/KimiK2/KimiK2ProviderImplementation.swift` (settings field + activation logic)

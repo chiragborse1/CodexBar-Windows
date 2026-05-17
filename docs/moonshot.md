@@ -46,5 +46,5 @@ separate cleanup so existing user settings are not silently repointed.
 - `Sources/CodexBarCore/Providers/Moonshot/MoonshotProviderDescriptor.swift` (descriptor + fetch strategy)
 - `Sources/CodexBarCore/Providers/Moonshot/MoonshotUsageFetcher.swift` (HTTP client + JSON parser)
 - `Sources/CodexBarCore/Providers/Moonshot/MoonshotSettingsReader.swift` (env var resolution)
-- `Sources/CodexBar/Providers/Moonshot/MoonshotProviderImplementation.swift` (settings field + activation logic)
-- `Sources/CodexBar/Providers/Moonshot/MoonshotSettingsStore.swift` (SettingsStore extension)
+- `Sources/CodexBarCore/Providers/Moonshot/MoonshotProviderImplementation.swift` (settings field + activation logic)
+- `Sources/CodexBarCore/Providers/Moonshot/MoonshotSettingsStore.swift` (SettingsStore extension)

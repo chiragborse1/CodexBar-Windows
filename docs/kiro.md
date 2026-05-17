@@ -53,4 +53,4 @@ Kiro does not have a dedicated status page. The "View Status" link opens the AWS
 
 - `Sources/CodexBarCore/Providers/Kiro/KiroProviderDescriptor.swift`
 - `Sources/CodexBarCore/Providers/Kiro/KiroStatusProbe.swift`
-- `Sources/CodexBar/Providers/Kiro/KiroProviderImplementation.swift`
+- `Sources/CodexBarCore/Providers/Kiro/KiroProviderImplementation.swift`

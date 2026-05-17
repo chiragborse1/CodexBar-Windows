@@ -18,6 +18,7 @@ The app zip contains:
 
 - `CodexBar-Windows.exe`
 - `CodexBarCLI.exe`
+- Swift runtime DLLs copied from the Windows Swift toolchain
 - .NET runtime-dependent publish files
 - `README_RUN.txt`
 - `VERSION`
@@ -66,6 +67,8 @@ git push origin v<version>
 
 - The current package is runtime-dependent and expects the .NET Desktop Runtime
   8 to be available. A self-contained installer is planned.
+- Swift runtime DLLs are bundled locally in the zip so end users do not need a
+  Swift toolchain installed for normal use.
 - MSIX/WiX installer packaging is not implemented yet.
-- macOS signing, notarization, Sparkle, and Homebrew cask release steps are not
-  part of CodexBar-Windows releases.
+- Non-Windows desktop signing, appcast, and package-manager release steps are
+  not part of CodexBar-Windows releases.

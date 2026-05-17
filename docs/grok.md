@@ -140,4 +140,4 @@ points to `https://status.x.ai`.
 - `Sources/CodexBarCore/Providers/Grok/GrokWebBillingFetcher.swift`
 - `Sources/CodexBarCore/Providers/Grok/GrokStatusProbe.swift`
 - `Sources/CodexBarCore/Providers/Grok/GrokLocalSessionScanner.swift`
-- `Sources/CodexBar/Providers/Grok/GrokProviderImplementation.swift`
+- `Sources/CodexBarCore/Providers/Grok/GrokProviderImplementation.swift`

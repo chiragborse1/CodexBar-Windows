@@ -42,4 +42,3 @@ z.ai is API-token based. No browser cookies.
 ## Key files
 - `Sources/CodexBarCore/Providers/Zai/ZaiUsageStats.swift`
 - `Sources/CodexBarCore/Providers/Zai/ZaiSettingsReader.swift`
-- `Sources/CodexBar/ZaiTokenStore.swift` (legacy migration helper)

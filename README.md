@@ -14,10 +14,11 @@ plus a standalone CLI for scripts and terminal workflows.
 Current build status:
 - Native Windows tray app is wired into GitHub Actions and release packaging.
 - Windows CLI build is wired into GitHub Actions.
-- `CodexBarCLI.exe --help` and `CodexBarCLI.exe --version` pass smoke tests on
-  `windows-latest`.
+- Release packaging verifies `CodexBar-Windows.exe --smoke-test` and
+  `CodexBarCLI.exe --version` from the packaged folder.
 - Windows release packaging is configured for an app `.zip` artifact containing
-  `CodexBar-Windows.exe` and `CodexBarCLI.exe`.
+  `CodexBar-Windows.exe`, `CodexBarCLI.exe`, bundled Swift runtime DLLs,
+  `README_RUN.txt`, and `VERSION`.
 
 Current limitations:
 - Browser cookie extraction is stubbed on Windows.
@@ -34,7 +35,7 @@ is tagged:
 
 <https://github.com/chiragborse1/CodexBar-Windows/releases>
 
-Manual workflow artifacts can be downloaded from the `Release` GitHub
+Manual workflow artifacts can be downloaded from the `Release` or `CI` GitHub
 Actions workflow. The Windows artifact is named `codexbar-windows-x86_64`.
 
 To build from source on Windows:
@@ -42,6 +43,7 @@ To build from source on Windows:
 ```powershell
 swift build -c release --product CodexBarCLI
 dotnet publish Windows\CodexBar.Windows\CodexBar.Windows.csproj -c Release -r win-x64 --self-contained false
+pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
 ```
 
 ## CLI Examples
@@ -78,12 +80,13 @@ Useful commands:
 ```powershell
 swift build -c release --product CodexBarCLI
 dotnet publish Windows\CodexBar.Windows\CodexBar.Windows.csproj -c Release -r win-x64 --self-contained false
+pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
 swift test
 ```
 
-The package also contains macOS/Linux code inherited by the shared provider
-engine. Windows work should stay isolated behind platform checks so the shared
-code remains easy to maintain.
+The shared Swift engine still contains platform gates for providers that depend
+on browser cookies, WebKit, keychain, or PTY behavior. Windows work should stay
+isolated behind those gates until native Windows implementations exist.
 
 ## Attribution
 

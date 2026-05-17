@@ -90,4 +90,4 @@ Antigravity supports local IDE probing and Google OAuth-backed remote usage. The
 
 ## Key files
 - `Sources/CodexBarCore/Providers/Antigravity/AntigravityStatusProbe.swift`
-- `Sources/CodexBar/Providers/Antigravity/AntigravityProviderImplementation.swift`
+- `Sources/CodexBarCore/Providers/Antigravity/AntigravityProviderImplementation.swift`

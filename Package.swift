@@ -6,10 +6,7 @@ import PackageDescription
 let sweetCookieKitPath = "../SweetCookieKit"
 let useLocalSweetCookieKit =
     ProcessInfo.processInfo.environment["CODEXBAR_USE_LOCAL_SWEETCOOKIEKIT"] == "1"
-#if os(Windows)
-let sweetCookieKitDependency: Package.Dependency? = nil
-let sweetCookieKitTargetDependency: Target.Dependency = "SweetCookieKit"
-#else
+#if os(macOS)
 let sweetCookieKitDependency: Package.Dependency? =
     useLocalSweetCookieKit && FileManager.default.fileExists(atPath: sweetCookieKitPath)
     ? .package(path: sweetCookieKitPath)
@@ -17,6 +14,9 @@ let sweetCookieKitDependency: Package.Dependency? =
 let sweetCookieKitTargetDependency: Target.Dependency = .product(
     name: "SweetCookieKit",
     package: "SweetCookieKit")
+#else
+let sweetCookieKitDependency: Package.Dependency? = nil
+let sweetCookieKitTargetDependency: Target.Dependency = "SweetCookieKit"
 #endif
 
 let sharedPackageDependencies: [Package.Dependency] = [
@@ -26,23 +26,11 @@ let sharedPackageDependencies: [Package.Dependency] = [
     .package(url: "https://github.com/apple/swift-syntax", from: "600.0.1"),
 ]
 
-#if os(Windows)
-let appOnlyPackageDependencies: [Package.Dependency] = []
-#else
-let appOnlyPackageDependencies: [Package.Dependency] = [
-    .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.1"),
-    .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.4.0"),
-    .package(url: "https://github.com/zats/Vortex", revision: "ef5392088d4aeb255c4eee83157dbdafcd31bf07"),
-]
-#endif
-
 let packageDependencies =
-    sharedPackageDependencies +
-    appOnlyPackageDependencies +
-    (sweetCookieKitDependency.map { [$0] } ?? [])
+    sharedPackageDependencies + (sweetCookieKitDependency.map { [$0] } ?? [])
 
 let package = Package(
-    name: "CodexBar",
+    name: "CodexBarWindows",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14),
@@ -93,68 +81,12 @@ let package = Package(
                 ]),
         ]
 
-        #if os(Windows)
+        #if !os(macOS)
         targets.append(.target(
             name: "SweetCookieKit",
             path: "Sources/SweetCookieKitWindowsStub",
             swiftSettings: [
                 .enableUpcomingFeature("StrictConcurrency"),
-            ]))
-        #endif
-
-        #if os(macOS)
-        targets.append(contentsOf: [
-            .executableTarget(
-                name: "CodexBarClaudeWatchdog",
-                dependencies: [],
-                path: "Sources/CodexBarClaudeWatchdog",
-                swiftSettings: [
-                    .enableUpcomingFeature("StrictConcurrency"),
-                ]),
-            .executableTarget(
-                name: "CodexBar",
-                dependencies: [
-                    .product(name: "Sparkle", package: "Sparkle"),
-                    .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts"),
-                    .product(name: "Vortex", package: "Vortex"),
-                    "CodexBarMacroSupport",
-                    "CodexBarCore",
-                ],
-                path: "Sources/CodexBar",
-                resources: [
-                    .process("Resources"),
-                ],
-                swiftSettings: [
-                    // Opt into Swift 6 strict concurrency (approachable migration path).
-                    .enableUpcomingFeature("StrictConcurrency"),
-                    .define("ENABLE_SPARKLE"),
-                ]),
-            .executableTarget(
-                name: "CodexBarWidget",
-                dependencies: ["CodexBarCore"],
-                path: "Sources/CodexBarWidget",
-                swiftSettings: [
-                    .enableUpcomingFeature("StrictConcurrency"),
-                ]),
-            .executableTarget(
-                name: "CodexBarClaudeWebProbe",
-                dependencies: ["CodexBarCore"],
-                path: "Sources/CodexBarClaudeWebProbe",
-                swiftSettings: [
-                    .enableUpcomingFeature("StrictConcurrency"),
-                ]),
-        ])
-
-        targets.append(.testTarget(
-            name: "CodexBarTests",
-            dependencies: ["CodexBar", "CodexBarCore", "CodexBarCLI", "CodexBarWidget"],
-            path: "Tests",
-            resources: [
-                .copy("CodexBarTests/Fixtures"),
-            ],
-            swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency"),
-                .enableExperimentalFeature("SwiftTesting"),
             ]))
         #endif
 

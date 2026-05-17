@@ -70,4 +70,4 @@ When the RPC endpoint returns `ConsoleNeedLogin`, CodexBar treats that as a cons
 - `Sources/CodexBarCore/Providers/Alibaba/AlibabaCodingPlanProviderDescriptor.swift`
 - `Sources/CodexBarCore/Providers/Alibaba/AlibabaCodingPlanUsageFetcher.swift`
 - `Sources/CodexBarCore/Providers/Alibaba/AlibabaCodingPlanUsageSnapshot.swift`
-- `Sources/CodexBar/Providers/Alibaba/AlibabaCodingPlanProviderImplementation.swift`
+- `Sources/CodexBarCore/Providers/Alibaba/AlibabaCodingPlanProviderImplementation.swift`

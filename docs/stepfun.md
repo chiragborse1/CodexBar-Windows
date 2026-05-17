@@ -52,6 +52,5 @@ authenticated via an Oasis-Token obtained through a username + password login fl
 - `Sources/CodexBarCore/Providers/StepFun/StepFunProviderDescriptor.swift` (descriptor + web fetch strategy)
 - `Sources/CodexBarCore/Providers/StepFun/StepFunUsageFetcher.swift` (login flow + HTTP client + JSON parser)
 - `Sources/CodexBarCore/Providers/StepFun/StepFunSettingsReader.swift` (env var resolution)
-- `Sources/CodexBar/Providers/StepFun/StepFunProviderImplementation.swift` (settings fields + activation logic)
-- `Sources/CodexBar/Providers/StepFun/StepFunSettingsStore.swift` (SettingsStore extension)
-- `Tests/CodexBarTests/StepFunUsageFetcherTests.swift` (22 test cases)
+- `Sources/CodexBarCore/Providers/StepFun/StepFunProviderImplementation.swift` (settings fields + activation logic)
+- `Sources/CodexBarCore/Providers/StepFun/StepFunSettingsStore.swift` (SettingsStore extension)

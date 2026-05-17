@@ -41,7 +41,3 @@ manual cookie field.
 
 - `Sources/CodexBarCore/Providers/CommandCode/` - descriptor, cookie import,
   billing fetcher, snapshot mapping, and plan catalog.
-- `Sources/CodexBar/Providers/CommandCode/` - settings store bridge and
-  provider settings UI.
-- `Tests/CodexBarTests/CommandCode*Tests.swift` - parser, cookie, settings,
-  and icon coverage.
