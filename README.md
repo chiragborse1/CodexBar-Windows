@@ -12,7 +12,7 @@ plus a standalone CLI for scripts and terminal workflows.
 ## Status
 
 Current build status:
-- Native Windows tray app opens a compact CodexBar-style tray popover.
+- Native Windows tray app opens a WPF CodexBar-style tray popover.
 - Windows CLI build is wired into GitHub Actions.
 - Release packaging verifies `CodexBar-Windows.exe --smoke-test` and
   `CodexBarCLI.exe --version` from the packaged folder.
@@ -24,8 +24,8 @@ Current limitations:
 - Browser cookie extraction is stubbed on Windows.
 - PTY-backed Codex and Claude CLI sessions are stubbed on Windows.
 - The localhost HTTP `serve` command is stubbed on Windows.
-- Some macOS menu-card details, charts, and provider setup flows are still being
-  translated into native Windows UI.
+- Some macOS menu-card details, charts, animations, and provider setup flows are
+  still being translated into native Windows UI.
 
 See [docs/windows-port.md](docs/windows-port.md) for the current implementation
 plan and compatibility notes.

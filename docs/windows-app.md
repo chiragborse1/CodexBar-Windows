@@ -6,10 +6,11 @@ CodexBar-Windows includes a native Windows tray app in:
 Windows/CodexBar.Windows
 ```
 
-The app is a WinForms shell around `CodexBarCLI.exe`. It keeps the provider
-engine in Swift while giving Windows users a normal tray entry point. The
-primary UI is a compact tray popover that follows the macOS CodexBar menu-card
-model; the larger table view is kept as diagnostics.
+The app uses WinForms for the Windows tray host and diagnostics, with a WPF
+popover as the primary user-facing UI around `CodexBarCLI.exe`. It keeps the
+provider engine in Swift while giving Windows users a normal tray entry point.
+The popover follows the macOS CodexBar menu-card model; the larger table view is
+kept as diagnostics.
 
 ## Build
 
@@ -45,8 +46,9 @@ and app settings unless `-KeepSettings` is passed.
 ## Features
 
 - system tray icon and context menu
-- compact CodexBar-style usage popover
-- provider cards with usage bars, reset text, credits, cost, status, and errors
+- WPF CodexBar-style usage popover
+- provider cards with rounded panels, icon badges, usage bars, reset text,
+  credits, cost, status, and errors
 - diagnostics window with structured usage table, compatibility table, and raw
   CLI output
 - usage refresh through the CLI backend

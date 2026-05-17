@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0-alpha.3 - 2026-05-17
+
+### Changed
+- Replaced the broken WinForms popover implementation with a WPF popover.
+- Added WPF-rendered provider cards with rounded panels, shadow, icon badges,
+  status pills, progress bars, reset text, credits, cost, and error summaries.
+- Kept WinForms for the Windows tray host and diagnostics while moving the
+  primary user-facing surface to WPF.
+
 ## 0.1.0-alpha.2 - 2026-05-17
 
 ### Added
