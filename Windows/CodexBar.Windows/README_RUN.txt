@@ -13,13 +13,14 @@ Uninstall after using install.ps1:
   powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
 
 The app places an icon in the Windows system tray. Click the tray icon to open
-the compact CodexBar popover. Use More or the tray context menu for diagnostics.
+the compact CodexBar popover. Use Settings and More inside the popover for
+provider setup, diagnostics, raw CLI output, and config actions.
 
 First-time setup:
-  1. Open Settings from the popover or tray menu.
-  2. Open Providers.
-  3. Pick a provider, paste its API key, and click Save API Key.
-  4. Click Save in Settings.
+  1. Open Settings inside the popover.
+  2. Pick a provider in Provider Setup.
+  3. Paste its API key and click Save API Key.
+  4. Return to Usage.
 
 The bundled CLI backend is:
   CodexBarCLI.exe

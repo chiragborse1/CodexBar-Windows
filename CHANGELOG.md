@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.0-alpha.5 - 2026-05-17
+
+### Added
+- Added embedded Usage, Settings, and More navigation inside the tray popover.
+- Added in-popover settings for provider scope, refresh interval, startup
+  behavior, provider API-key setup, and provider enable/disable actions.
+- Added an embedded More view for raw CLI output, config validation, config
+  shortcuts, and provider compatibility.
+
+### Changed
+- The Settings and More buttons no longer open classic secondary windows from
+  the popover.
+- Refreshed the popover visual design with a wider layout, segmented
+  navigation, softer cards, and styled WPF buttons.
+
 ## 0.1.0-alpha.4 - 2026-05-17
 
 ### Added

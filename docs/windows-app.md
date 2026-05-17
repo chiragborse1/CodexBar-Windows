@@ -6,11 +6,11 @@ CodexBar-Windows includes a native Windows tray app in:
 Windows/CodexBar.Windows
 ```
 
-The app uses WinForms for the Windows tray host and diagnostics, with a WPF
+The app uses WinForms for the Windows tray host, with a WPF
 popover as the primary user-facing UI around `CodexBarCLI.exe`. It keeps the
 provider engine in Swift while giving Windows users a normal tray entry point.
-The popover follows the macOS CodexBar menu-card model; the larger table view is
-kept as diagnostics.
+The popover follows the macOS CodexBar menu-card model and includes Usage,
+Settings, and More views without leaving the tray surface.
 
 ## Build
 
@@ -67,13 +67,15 @@ and app settings unless `-KeepSettings` is passed.
 - WPF CodexBar-style usage popover
 - provider cards with rounded panels, icon badges, usage bars, reset text,
   credits, cost, status, and errors
-- diagnostics window with structured usage table, compatibility table, and raw
-  CLI output
+- embedded More view with raw CLI output, config actions, and provider
+  compatibility
 - usage refresh through the CLI backend
 - provider selection with an `enabled` scope that mirrors config
-- API-key setup controls for providers supported by the CLI config store
+- embedded API-key setup controls for providers supported by the CLI config
+  store
 - CLI path override
-- tabbed settings sections for General, Display, Providers, Advanced, and About
+- embedded settings for refresh scope, refresh interval, startup behavior, and
+  provider setup
 - launch at sign-in toggle
 - start minimized toggle
 - config file/folder shortcuts
@@ -81,14 +83,14 @@ and app settings unless `-KeepSettings` is passed.
 
 ## Provider Setup
 
-Open `Settings > Providers`, choose a provider, paste its API key, and click
-`Save API Key`. The setting is written to
+Open `Settings` inside the tray popover, choose a provider, paste its API key,
+and click `Save API Key`. The setting is written to
 `%APPDATA%\CodexBar-Windows\config.json` through `CodexBarCLI.exe config
 set-api-key --stdin`, so the same config works from the app and CLI.
 
 The tray app defaults to the `enabled` provider scope. When a key is saved from
-Settings, the Display scope moves to that provider so the popover shows the
-configured provider instead of every known provider.
+Settings, the scope moves to that provider so the popover shows the configured
+provider instead of every known provider.
 
 ## Packaging
 

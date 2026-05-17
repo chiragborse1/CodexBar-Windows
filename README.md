@@ -13,6 +13,8 @@ plus a standalone CLI for scripts and terminal workflows.
 
 Current build status:
 - Native Windows tray app opens a WPF CodexBar-style tray popover.
+- Usage, Settings, and More now stay inside the popover instead of opening
+  classic secondary windows.
 - Settings can save API keys for Windows-ready providers through the bundled
   CLI config command.
 - Windows CLI build is wired into GitHub Actions.
@@ -41,19 +43,19 @@ Windows release binaries are published from this repository:
 Download the latest `CodexBar-Windows-<version>-windows-x86_64.zip` release
 asset, extract it, and run `CodexBar-Windows.exe`.
 
-Click the Windows tray icon to open the compact usage popover. Use `More` or
-the tray context menu to open diagnostics with the raw CLI output and provider
-compatibility table.
+Click the Windows tray icon to open the compact usage popover. Use `Settings`
+or `More` inside the popover for setup, raw CLI output, config actions, and the
+provider compatibility view.
 
 First-time setup:
 
 1. Open the tray popover and click `Settings`.
-2. Open the `Providers` tab.
+2. Pick a provider in `Provider Setup`.
 3. Choose a Windows-ready provider such as OpenRouter, OpenAI, Copilot, Claude,
    ElevenLabs, Moonshot, Kilo, or Venice.
 4. Paste the provider API key, keep `Enable provider after saving` checked, and
    click `Save API Key`.
-5. Click `Save` in Settings. The popover will refresh against that provider.
+5. The popover focuses that provider and refreshes against it.
 
 To install it into your user profile and create a Start Menu shortcut:
 

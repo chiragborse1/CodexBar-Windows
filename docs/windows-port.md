@@ -23,8 +23,8 @@ Bring a complete CodexBar-Windows experience to Windows users:
 - Release packaging uploads `codexbar-windows-x86_64`, containing the tray app,
   CLI backend, Swift runtime DLLs, publish files, `VERSION`, and
   `README_RUN.txt`.
-- The tray popover parses CLI JSON into provider cards. Diagnostics keeps the
-  structured table, compatibility list, and raw output available for debugging.
+- The tray popover parses CLI JSON into provider cards and keeps Settings and
+  More diagnostics inside the tray surface.
 - Settings can save API keys for config-backed providers and focus the popover
   on the configured provider.
 - Browser-cookie extraction is stubbed on Windows.
@@ -44,10 +44,11 @@ The tray app provides:
 
 - system tray icon and menu
 - compact CodexBar-style usage popover
-- diagnostics window with refresh/copy/config/settings actions
+- embedded More view with refresh/copy/config actions and provider
+  compatibility
 - scheduled refresh loop
 - configurable provider target
-- provider API-key setup for CLI-supported config secrets
+- embedded provider API-key setup for CLI-supported config secrets
 - CLI path override
 - launch-at-sign-in toggle through the current-user Run registry key
 - app settings in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`
