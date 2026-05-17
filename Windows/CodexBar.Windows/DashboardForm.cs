@@ -21,7 +21,7 @@ internal sealed class DashboardForm : Form
         this.settings = settings;
         this.cliRunner = cliRunner;
 
-        Text = AppInfo.DisplayName;
+        Text = $"{AppInfo.DisplayName} Diagnostics";
         MinimumSize = new Size(760, 520);
         Size = new Size(900, 640);
         StartPosition = FormStartPosition.CenterScreen;
@@ -41,7 +41,7 @@ internal sealed class DashboardForm : Form
 
         var header = new Label
         {
-            Text = AppInfo.DisplayName,
+            Text = "Diagnostics",
             AutoSize = true,
             Font = new Font(Font.FontFamily, 18, FontStyle.Bold),
             Margin = new Padding(0, 0, 0, 8),
@@ -61,7 +61,7 @@ internal sealed class DashboardForm : Form
         refreshButton.Click += async (_, _) => await RefreshUsageAsync();
         toolbar.Controls.Add(refreshButton);
 
-        copyButton = new Button { Text = "Copy Output", AutoSize = true };
+        copyButton = new Button { Text = "Copy Raw", AutoSize = true };
         copyButton.Click += (_, _) => CopyOutput();
         toolbar.Controls.Add(copyButton);
 
@@ -87,7 +87,7 @@ internal sealed class DashboardForm : Form
         };
         root.Controls.Add(tabs, 0, 2);
 
-        var summaryPage = new TabPage("Dashboard");
+        var summaryPage = new TabPage("Usage Table");
         tabs.TabPages.Add(summaryPage);
 
         summaryGrid = new DataGridView

@@ -12,8 +12,8 @@ Optional install:
 Uninstall after using install.ps1:
   powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
 
-The app places an icon in the Windows system tray. Open the dashboard from the
-tray icon or by double-clicking it.
+The app places an icon in the Windows system tray. Click the tray icon to open
+the compact CodexBar popover. Use More or the tray context menu for diagnostics.
 
 The bundled CLI backend is:
   CodexBarCLI.exe
