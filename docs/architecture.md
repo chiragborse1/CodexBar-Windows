@@ -9,7 +9,7 @@ read_when:
 
 ## Modules
 
-- `Windows/CodexBar.Windows`: WinForms tray app, dashboard, settings, startup integration, and release packaging script.
+- `Windows/CodexBar.Windows`: WinForms tray app, popover UI, diagnostics, settings, startup integration, and release packaging script.
 - `Sources/CodexBarCLI`: Swift CLI entry point used directly by users and by the Windows tray app.
 - `Sources/CodexBarCore`: provider registry, fetchers, config models, cache stores, cost scanners, logging, and platform gates.
 - `Sources/CodexBarMacros` and `Sources/CodexBarMacroSupport`: SwiftSyntax macro support for provider registration.
@@ -19,8 +19,8 @@ read_when:
 
 1. `CodexBar-Windows.exe` starts in the notification area.
 2. The tray app resolves `CodexBarCLI.exe` beside itself, from settings, or from `PATH`.
-3. Dashboard refresh runs `CodexBarCLI.exe usage --provider <id> --format json --pretty`.
-4. The Windows UI parses the JSON into summary rows and keeps the raw CLI output available for debugging.
+3. Popover refresh runs `CodexBarCLI.exe usage --provider <id> --format json --pretty`.
+4. The Windows UI parses the JSON into provider cards and keeps table/raw output diagnostics available for debugging.
 5. Provider configuration is opened from `%APPDATA%\CodexBar-Windows\config.json`.
 6. Windows app preferences are stored in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`.
 
