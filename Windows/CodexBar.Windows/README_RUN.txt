@@ -21,7 +21,7 @@ Useful CLI checks:
   CodexBarCLI.exe usage --provider all --format json --pretty
 
 Provider credentials and toggles are stored in:
-  %USERPROFILE%\.codexbar\config.json
+  %APPDATA%\CodexBar-Windows\config.json
 
 App settings are stored in:
   %APPDATA%\CodexBar-Windows\windows-app-settings.json

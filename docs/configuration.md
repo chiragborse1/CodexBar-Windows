@@ -1,135 +1,62 @@
----
-summary: "CodexBar config file layout for CLI + app settings."
-read_when:
-  - "Editing the CodexBar config file or moving settings off Keychain."
-  - "Adding new provider settings fields or defaults."
-  - "Explaining CLI/app configuration and security."
----
-
 # Configuration
 
-CodexBar reads a single JSON config file for CLI and app provider settings.
-API keys, manual cookie headers, source selection, ordering, and token accounts live here. Keychain is still used for runtime cookie caches, browser Safe Storage access, and provider OAuth/device-flow credentials where those flows require it.
+CodexBar-Windows uses one JSON config file for provider settings, enabled
+providers, source preferences, API keys, manual cookies, regions, workspaces,
+and token accounts.
 
 ## Location
-- `~/.codexbar/config.json`
-- Override for scripts/tests: set `CODEXBAR_CONFIG=/path/to/config.json`.
-- The directory is created if missing.
-- Permissions are set to `0600` whenever CodexBar writes the file on macOS and Linux.
 
-## Root shape
-```json
-{
-  "version": 1,
-  "providers": [
-    {
-      "id": "codex",
-      "enabled": true,
-      "source": "auto",
-      "cookieSource": "auto",
-      "cookieHeader": null,
-      "apiKey": null,
-      "region": null,
-      "workspaceID": null,
-      "tokenAccounts": null
-    }
-  ]
-}
+Default Windows path:
+
+```text
+%APPDATA%\CodexBar-Windows\config.json
 ```
 
-## Provider fields
-All provider fields are optional unless noted.
+Override path:
 
-- `id` (required): provider identifier.
-- `enabled`: enable/disable provider (defaults to provider default).
-- `source`: preferred source mode.
-  - `auto|web|cli|oauth|api`
-  - `auto` uses provider-specific fallback order (see `docs/providers.md`).
-  - `api` uses the provider's API-backed mode; only some providers consume the `apiKey` field.
-- `apiKey`: raw API token for providers that support config-backed direct API usage.
-- `cookieSource`: cookie selection policy.
-  - `auto` (browser import), `manual` (use `cookieHeader`), `off` (disable cookies)
-- `cookieHeader`: raw cookie header value (e.g. `key=value; other=...`).
-- `region`: provider-specific region (e.g. `zai`, `minimax`).
-- `workspaceID`: provider-specific workspace ID (e.g. `opencode`).
-- `tokenAccounts`: multi-account tokens for providers in `TokenAccountSupportCatalog`.
+```powershell
+$env:CODEXBAR_CONFIG="C:\path\to\config.json"
+```
 
-## Manual cookies
-Use manual cookies when automatic browser import is unavailable, disabled, or too noisy for your setup.
-The app and CLI both read the same `~/.codexbar/config.json`, so a manual cookie saved in the UI is also used by
-`codexbar`, and a cookie written by tooling is shown in the app after reload.
+The Windows tray app always points the bundled CLI at the same config file.
 
-`cookieHeader` expects the HTTP `Cookie:` request header value for the provider origin, not a raw Netscape cookie
-export. In browser DevTools, open the Network tab, select a request for the provider site, and copy the request
-header named `Cookie`. You can paste either the full `Cookie: name=value; other=value` string or just
-`name=value; other=value`.
-
-If you have a Netscape export, convert each non-comment row to `name=value` and join values with `; `. Do not paste
-the raw `# Netscape HTTP Cookie File` text into `cookieHeader`.
-
-Example placeholder config:
+## Shape
 
 ```json
 {
   "version": 1,
   "providers": [
     {
-      "id": "example-provider",
+      "id": "openrouter",
       "enabled": true,
-      "cookieSource": "manual",
-      "cookieHeader": "session=<REDACTED>; other=<REDACTED>"
+      "source": "api",
+      "apiKey": "sk-or-..."
     }
   ]
 }
 ```
 
-Validate after editing:
+## Provider Fields
 
-```bash
-codexbar config validate
-codexbar usage --provider example-provider --verbose
+- `id`: provider identifier.
+- `enabled`: enables or disables the provider.
+- `source`: `auto`, `web`, `cli`, `oauth`, or `api`.
+- `apiKey`: token for API-backed providers.
+- `cookieSource`: `auto`, `manual`, or `off`.
+- `cookieHeader`: manual HTTP `Cookie` header value.
+- `region`: provider-specific region.
+- `workspaceID`: provider-specific workspace or organization ID.
+- `tokenAccounts`: multi-account token data.
+
+## Commands
+
+```powershell
+.\CodexBarCLI.exe config validate --format json --pretty
+.\CodexBarCLI.exe config dump --pretty
+.\CodexBarCLI.exe config providers
+.\CodexBarCLI.exe config enable --provider openrouter
+.\CodexBarCLI.exe config disable --provider cursor
+Get-Content .\token.txt | .\CodexBarCLI.exe config set-api-key --provider openrouter --stdin
 ```
 
-CLI shortcuts:
-
-```bash
-codexbar config providers
-codexbar config enable --provider grok
-codexbar config disable --provider cursor
-printf '%s' "$ELEVENLABS_API_KEY" | codexbar config set-api-key --provider elevenlabs --stdin
-```
-
-See [CLI configuration](cli-configuration.md) for scripting examples and output formats.
-
-Manual cookies are secrets. Keep `~/.codexbar/config.json` private, leave its permissions at `0600`, never commit it,
-and never paste real cookie values or readable DevTools screenshots into public issues.
-
-### tokenAccounts
-```json
-{
-  "version": 1,
-  "activeIndex": 0,
-  "accounts": [
-    {
-      "id": "00000000-0000-0000-0000-000000000000",
-      "label": "user@example.com",
-      "token": "sk-...",
-      "addedAt": 1735123456,
-      "lastUsed": 1735220000
-    }
-  ]
-}
-```
-
-## Provider IDs
-Current IDs (see `Sources/CodexBarCore/Providers/Providers.swift`):
-`codex`, `openai`, `claude`, `cursor`, `opencode`, `opencodego`, `alibaba`, `factory`, `gemini`, `antigravity`, `copilot`, `zai`, `minimax`, `manus`, `kimi`, `kilo`, `kiro`, `vertexai`, `augment`, `jetbrains`, `kimik2`, `moonshot`, `amp`, `ollama`, `synthetic`, `warp`, `openrouter`, `elevenlabs`, `windsurf`, `perplexity`, `mimo`, `doubao`, `abacus`, `mistral`, `deepseek`, `codebuff`, `crof`, `venice`, `commandcode`, `stepfun`, `bedrock`, `grok`.
-
-## Ordering
-The order of `providers` controls display/order in the app and CLI. Reorder the array to change ordering.
-
-## Notes
-- Fields not relevant to a provider are ignored.
-- Omitted providers are appended with defaults during normalization.
-- Keep the file private; it contains secrets.
-- Validate the file with `codexbar config validate` (JSON output available with `--format json`).
+Keep this file private. It can contain API keys and cookies.

@@ -21,7 +21,7 @@ read_when:
 2. The tray app resolves `CodexBarCLI.exe` beside itself, from settings, or from `PATH`.
 3. Dashboard refresh runs `CodexBarCLI.exe usage --provider <id> --format json --pretty`.
 4. The Windows UI parses the JSON into summary rows and keeps the raw CLI output available for debugging.
-5. Provider configuration is opened from `%USERPROFILE%\.codexbar\config.json`.
+5. Provider configuration is opened from `%APPDATA%\CodexBar-Windows\config.json`.
 6. Windows app preferences are stored in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`.
 
 ## Packaging

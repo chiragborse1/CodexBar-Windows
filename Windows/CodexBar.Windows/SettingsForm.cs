@@ -6,6 +6,7 @@ internal sealed class SettingsForm : Form
     private readonly ComboBox providerBox;
     private readonly NumericUpDown refreshIntervalBox;
     private readonly CheckBox launchAtLoginBox;
+    private readonly CheckBox startMinimizedBox;
     private readonly Label testResultLabel;
 
     public SettingsForm(AppSettings settings, CliRunner cliRunner)
@@ -25,14 +26,14 @@ internal sealed class SettingsForm : Form
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(620, 280);
+        ClientSize = new Size(620, 320);
         Font = new Font("Segoe UI", 9F);
 
         var root = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             ColumnCount = 3,
-            RowCount = 6,
+            RowCount = 7,
             Padding = new Padding(16),
         };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
@@ -72,11 +73,19 @@ internal sealed class SettingsForm : Form
         };
         root.Controls.Add(launchAtLoginBox, 1, 3);
 
+        startMinimizedBox = new CheckBox
+        {
+            Text = "Start minimized to tray",
+            Checked = Settings.StartMinimized,
+            AutoSize = true,
+        };
+        root.Controls.Add(startMinimizedBox, 1, 4);
+
         var testButton = new Button { Text = "Test CLI", AutoSize = true };
         testButton.Click += async (_, _) => await TestCliAsync();
-        root.Controls.Add(testButton, 1, 4);
+        root.Controls.Add(testButton, 1, 5);
         testResultLabel = new Label { AutoSize = true, Anchor = AnchorStyles.Left, Text = "" };
-        root.Controls.Add(testResultLabel, 2, 4);
+        root.Controls.Add(testResultLabel, 2, 5);
 
         var buttons = new FlowLayoutPanel
         {
@@ -85,7 +94,7 @@ internal sealed class SettingsForm : Form
             AutoSize = true,
         };
         root.SetColumnSpan(buttons, 3);
-        root.Controls.Add(buttons, 0, 5);
+        root.Controls.Add(buttons, 0, 6);
 
         var saveButton = new Button { Text = "Save", DialogResult = DialogResult.OK, AutoSize = true };
         saveButton.Click += (_, _) => CaptureSettings();
@@ -134,5 +143,6 @@ internal sealed class SettingsForm : Form
         Settings.Provider = string.IsNullOrWhiteSpace(providerBox.Text) ? "all" : providerBox.Text.Trim();
         Settings.RefreshIntervalMinutes = (int)refreshIntervalBox.Value;
         Settings.LaunchAtLogin = launchAtLoginBox.Checked;
+        Settings.StartMinimized = startMinimizedBox.Checked;
     }
 }

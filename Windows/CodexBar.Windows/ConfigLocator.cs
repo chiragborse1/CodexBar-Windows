@@ -5,9 +5,7 @@ namespace CodexBar.Windows;
 internal static class ConfigLocator
 {
     public static string ConfigDirectory =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".codexbar");
+        AppInfo.AppDataDirectory;
 
     public static string ConfigPath => Path.Combine(ConfigDirectory, "config.json");
 

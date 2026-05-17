@@ -23,7 +23,7 @@ The package script copies `CodexBarCLI.exe` and Swift runtime DLLs beside
 ## Runtime Files
 
 - App settings: `%APPDATA%\CodexBar-Windows\windows-app-settings.json`
-- Provider config: `%USERPROFILE%\.codexbar\config.json`
+- Provider config: `%APPDATA%\CodexBar-Windows\config.json`
 - Bundled CLI: `CodexBarCLI.exe` beside `CodexBar-Windows.exe`
 
 ## Features
@@ -36,6 +36,7 @@ The package script copies `CodexBarCLI.exe` and Swift runtime DLLs beside
 - provider selection
 - CLI path override
 - launch at sign-in toggle
+- start minimized toggle
 - config file/folder shortcuts
 - manual smoke-test mode: `CodexBar-Windows.exe --smoke-test`
 

@@ -47,7 +47,7 @@ The tray app provides:
 - CLI path override
 - launch-at-sign-in toggle through the current-user Run registry key
 - app settings in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`
-- provider config access at `%USERPROFILE%\.codexbar\config.json`
+- provider config access at `%APPDATA%\CodexBar-Windows\config.json`
 
 ## What Works on Windows
 

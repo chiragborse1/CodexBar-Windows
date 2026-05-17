@@ -75,6 +75,7 @@ internal sealed class CliRunner
             CreateNoWindow = true,
             WorkingDirectory = Path.GetDirectoryName(executable) ?? AppContext.BaseDirectory,
         };
+        startInfo.Environment["CODEXBAR_CONFIG"] = ConfigLocator.ConfigPath;
 
         foreach (var argument in arguments)
         {

@@ -26,7 +26,7 @@ extension CodexBarCLI {
             Auto falls back to Claude CLI only when cookies are missing.
           - Kilo: app.kilo.ai API.
             Auto falls back to Kilo CLI when API credentials are missing or unauthorized.
-          Token accounts are loaded from ~/.codexbar/config.json.
+          Token accounts are loaded from the CodexBar-Windows config file.
           Use --account or --account-index to select a specific token account, or --all-accounts to fetch all.
           Account selection requires a single provider.
 
@@ -127,7 +127,7 @@ extension CodexBarCLI {
           Validate or print the CodexBar-Windows config file (default: validate).
           providers lists persistent provider enablement.
           enable/disable updates the same provider toggle used by Settings.
-          set-api-key stores a provider API key in ~/.codexbar/config.json and enables that provider by default.
+          set-api-key stores a provider API key in the config file and enables that provider by default.
 
         Examples:
           codexbar config validate --format json --pretty
@@ -154,7 +154,7 @@ extension CodexBarCLI {
                               [--pretty]
 
         Description:
-          Clear cached data. Use --cookies to clear browser cookie caches (stored in Keychain),
+          Clear cached data. Use --cookies to clear browser cookie caches where supported,
           --cost to clear cost usage scan caches, or --all for both.
           Optionally specify --provider with --cookies to clear cookies for a single provider only.
 

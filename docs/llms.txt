@@ -6,7 +6,8 @@ Canonical documentation:
 - Project README: https://github.com/chiragborse1/CodexBar-Windows
 - Windows app: https://github.com/chiragborse1/CodexBar-Windows/blob/main/docs/windows-app.md
 - Windows port status: https://github.com/chiragborse1/CodexBar-Windows/blob/main/docs/windows-port.md
-- CLI configuration: https://github.com/chiragborse1/CodexBar-Windows/blob/main/docs/cli-configuration.md
+- CLI usage: https://github.com/chiragborse1/CodexBar-Windows/blob/main/docs/cli.md
+- Configuration: https://github.com/chiragborse1/CodexBar-Windows/blob/main/docs/configuration.md
 
 Guidance for agents:
 - Treat this repository as the canonical Windows project.

@@ -82,6 +82,17 @@ public struct CodexBarConfigStore: @unchecked Sendable {
             let expanded = (override as NSString).expandingTildeInPath
             return URL(fileURLWithPath: expanded)
         }
+
+        #if os(Windows)
+        if let appData = environment["APPDATA"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !appData.isEmpty
+        {
+            return URL(fileURLWithPath: appData)
+                .appendingPathComponent("CodexBar-Windows", isDirectory: true)
+                .appendingPathComponent("config.json")
+        }
+        #endif
+
         return home
             .appendingPathComponent(".codexbar", isDirectory: true)
             .appendingPathComponent("config.json")

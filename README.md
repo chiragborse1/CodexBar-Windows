@@ -58,9 +58,7 @@ CodexBarCLI.exe cost --provider claude --format json --pretty
 ```
 
 Provider toggles and API keys are stored in the local CodexBar-Windows config
-file. The default config location is currently inherited from the shared CLI
-engine and will be migrated to a Windows-native app data location in a later
-phase.
+file at `%APPDATA%\CodexBar-Windows\config.json`.
 
 ## Roadmap
 

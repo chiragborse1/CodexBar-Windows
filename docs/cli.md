@@ -1,214 +1,65 @@
----
-summary: "CodexBar CLI for fetching usage from the command line."
-read_when:
-  - "You want to call CodexBar data from scripts or a terminal."
-  - "Adding or modifying Commander-based CLI commands."
-  - "Aligning menubar and CLI output/behavior."
----
-
 # CodexBar-Windows CLI
 
-A lightweight CLI used by the Windows tray app and by terminal workflows. Use
-it when you need usage numbers in scripts, CI, or dashboards without UI.
+`CodexBarCLI.exe` is the Swift provider engine used by the Windows tray app.
+It can also be run directly from PowerShell, scripts, and automation.
 
 ## Install
 
-Download the Windows zip from GitHub Releases or from the `Release` workflow
-artifact, extract it, and run `CodexBarCLI.exe` from the same folder as
+Download the `codexbar-windows-x86_64` artifact from the `CI` or `Release`
+workflow, extract the inner app zip, and run the CLI beside
 `CodexBar-Windows.exe`.
 
 ```powershell
 .\CodexBarCLI.exe --version
-.\CodexBarCLI.exe usage --format json --pretty
+.\CodexBarCLI.exe usage --provider all --format json --pretty
 ```
 
 ## Build
 
-- Standalone: `swift build -c release --product CodexBarCLI`.
-- Full Windows package: `pwsh .\Windows\package-windows.ps1 -ReleaseTag dev`.
-- Dependencies: Swift 6.2+ and .NET 8 for the Windows tray app.
+```powershell
+swift build -c release --product CodexBarCLI
+pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
+```
 
 ## Configuration
-CodexBar-Windows reads `~/.codexbar/config.json` for provider settings,
-secrets, and ordering.
-See `docs/configuration.md` for the schema.
 
-## Command
-- `codexbar` defaults to the `usage` command.
-  - `--format text|json` (default: text).
-- `codexbar cost` prints local token cost usage for Claude + Codex without web/CLI access.
-  - `--format text|json` (default: text).
-  - `--refresh` ignores cached scans.
-- `codexbar serve` starts a foreground localhost-only HTTP server for usage and cost JSON.
-  - `--port <port>` defaults to `8080`.
-  - `--refresh-interval <seconds>` defaults to `60` and controls the in-memory response cache TTL.
-  - v1 binds to `127.0.0.1` only. It does not expose remote bind, auth, CORS, TLS, or daemon mode.
-  - Endpoints: `GET /health`, `GET /usage`, `GET /usage?provider=<id|both|all>`, `GET /cost`, `GET /cost?provider=<id|both|all>`.
-- `CodexBarCLI.exe cache clear` clears local CodexBar-Windows caches.
-  - `--cookies` removes cached browser-cookie headers from the CodexBar Keychain cache.
-  - `--cookies --provider <id>` removes browser-cookie cache entries for that provider, including managed Codex account scopes.
-  - `--cost` removes local cost-usage scan caches.
-  - `--all` clears both cookies and cost caches. `--provider` is cookie-only and cannot be combined with `--cost` or `--all`.
-- `--provider <id|both|all>` (default: enabled providers in config; falls back to defaults when missing).
-  - Provider IDs live in the config file (see `docs/configuration.md`).
-  - With three or more providers enabled, the default stays scoped to enabled providers; use `--provider all` to query
-    every registered provider.
-  - `--account <label>` / `--account-index <n>` / `--all-accounts` (token accounts from config; requires a single provider).
-  - `--no-credits` (hide Codex credits in text output).
-  - `--pretty` (pretty-print JSON).
-  - `--status` (fetch provider status pages and include them in output).
-  - `--antigravity-plan-debug` (debug: print Antigravity planInfo fields to stderr).
-- `--source <auto|web|cli|oauth|api>` (default: `auto`).
-    - `auto`: provider-specific fallback order from `docs/providers.md`.
-    - `web`: web-only where that provider exposes an explicit web source; currently not implemented on Windows.
-    - `cli`: CLI/local-helper source where the provider exposes one (for example Codex RPC/PTy, Claude PTY, Kilo CLI fallback, Kiro CLI, local probes).
-    - `oauth`: OAuth-backed source where supported (Codex, Claude, Vertex AI).
-    - `api`: API-key/token flow when the provider supports it (z.ai, Gemini, Alibaba, Copilot, Kilo, Kimi K2, MiniMax, Warp, OpenRouter, Synthetic, DeepSeek, Moonshot, Codebuff).
-    - Output `source` reflects the strategy actually used (`openai-web`, `web`, `oauth`, `api`, `local`, `cli`, or provider CLI label).
-    - Codex web: OpenAI web dashboard (usage limits, credits remaining, code review remaining, usage breakdown).
-        - `--web-timeout <seconds>` (default: 60)
-        - `--web-debug-dump-html` (writes HTML snapshots to `/tmp` when data is missing)
-    - Claude web: claude.ai API (session + weekly usage, plus account metadata when available).
-    - Command Code web: commandcode.ai browser session cookies for monthly credit usage.
-    - Kilo auto: app.kilo.ai API first, then CLI auth fallback (`~/.local/share/kilo/auth.json`) on missing/unauthorized API credentials.
-    - Windows: web-backed `auto`/`web` modes are not supported yet; CLI prints an error and exits non-zero for providers that require browser/WebKit access.
-- Global flags: `-h/--help`, `-V/--version`, `-v/--verbose`, `--no-color`, `--log-level <trace|verbose|debug|info|warning|error|critical>`, `--json-output`, `--json-only`.
-  - `--json-output`: JSONL logs on stderr (machine-readable).
-  - `--json-only`: suppress non-JSON output; errors become JSON payloads.
-- `codexbar config validate` checks `~/.codexbar/config.json` for invalid fields.
-  - `--format text|json`, `--pretty`, and `--json-only` are supported.
-  - Warnings keep exit code 0; errors exit non-zero.
-- `codexbar config dump` prints the normalized config JSON.
+On Windows, the default config path is:
 
-### Token accounts
-The CLI reads multi-account tokens from `~/.codexbar/config.json` (same file as the app).
-- Select a specific account: `--account <label>` (matches the label/email in the file).
-- Select by index (1-based): `--account-index <n>`.
-- Fetch all accounts for the provider: `--all-accounts`.
-Account selection flags require a single provider (`--provider claude`, etc.).
-For Claude, token accounts accept either `sessionKey` cookies or OAuth access tokens (`sk-ant-oat...`).
-OAuth usage requires the `user:profile` scope; inference-only tokens will return an error.
-
-### Cost JSON payload
-`CodexBarCLI.exe cost --format json` emits an array of payloads (one per provider).
-- `provider`, `source`, `updatedAt`
-- `sessionTokens`, `sessionCostUSD`
-- `last30DaysTokens`, `last30DaysCostUSD`
-- `daily[]`: `date`, `inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheCreationTokens`, `totalTokens`, `totalCost`, `modelsUsed`, `modelBreakdowns[]` (`modelName`, `cost`)
-- `totals`: `inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheCreationTokens`, `totalTokens`, `totalCost`
-
-## Example usage
+```text
+%APPDATA%\CodexBar-Windows\config.json
 ```
-.\CodexBarCLI.exe                          # text, respects config toggles
-.\CodexBarCLI.exe --provider claude        # force Claude
-.\CodexBarCLI.exe --provider all           # query all registered providers
-.\CodexBarCLI.exe --format json --pretty   # machine output
-.\CodexBarCLI.exe cost                     # local cost usage
+
+Set `CODEXBAR_CONFIG` to use another config file for tests or scripts.
+
+## Common Commands
+
+```powershell
+.\CodexBarCLI.exe usage --provider all --format json --pretty
+.\CodexBarCLI.exe usage --provider openrouter --source api
 .\CodexBarCLI.exe cost --provider claude --format json --pretty
-.\CodexBarCLI.exe --status                 # include status page indicator/description
-.\CodexBarCLI.exe --provider codex --source oauth --format json --pretty
-.\CodexBarCLI.exe --provider claude --account user@example.com
-.\CodexBarCLI.exe --provider claude --all-accounts --format json --pretty
-.\CodexBarCLI.exe --json-only --format json --pretty
-.\CodexBarCLI.exe --provider gemini --source api --format json --pretty
-$env:KILO_API_KEY="..."; .\CodexBarCLI.exe --provider kilo --source api --format json --pretty
-$env:MOONSHOT_API_KEY="..."; .\CodexBarCLI.exe --provider moonshot --source api --format json --pretty
 .\CodexBarCLI.exe config validate --format json --pretty
 .\CodexBarCLI.exe config dump --pretty
-.\CodexBarCLI.exe cache clear --cookies
-.\CodexBarCLI.exe cache clear --cookies --provider claude
-.\CodexBarCLI.exe cache clear --all --format json --pretty
+.\CodexBarCLI.exe config providers
+.\CodexBarCLI.exe config enable --provider openrouter
+.\CodexBarCLI.exe config disable --provider cursor
+.\CodexBarCLI.exe config set-api-key --provider openrouter --stdin
 ```
 
-### Sample output (text)
-```
-== Codex 0.6.0 (codex-cli) ==
-Session: 72% left [========----]
-Resets today at 2:15 PM
-Weekly: 41% left [====--------]
-Pace: 6% in reserve | Expected 47% used | Lasts until reset
-Resets Fri at 9:00 AM
-Credits: 112.4 left
+## Useful Flags
 
-== Claude Code 2.0.58 (web) ==
-Session: 88% left [==========--]
-Resets tomorrow at 1:00 AM
-Weekly: 63% left [=======-----]
-Pace: On pace | Expected 37% used | Runs out in 4d
-Resets Sat at 6:00 AM
-Sonnet: 95% left [===========-]
-Account: user@example.com
-Plan: Pro
+- `--provider <id|all>` selects one provider or every registered provider.
+- `--source <auto|web|cli|oauth|api>` selects the provider source when supported.
+- `--format text|json` controls output shape.
+- `--pretty` formats JSON for reading.
+- `--no-color` disables ANSI output.
+- `--json-only` suppresses non-JSON diagnostics.
+- `--status` includes status-page data where implemented.
 
-== Kilo (cli) ==
-Credits: 60% left [=======-----]
-40/100 credits
-Plan: Kilo Pass Pro
-Activity: Auto top-up: visa
-Note: Using CLI fallback
-```
+## Windows Compatibility
 
-### Sample output (JSON, pretty)
-```json
-{
-  "provider": "codex",
-  "version": "0.6.0",
-  "source": "openai-web",
-  "status": { "indicator": "none", "description": "Operational", "updatedAt": "2025-12-04T17:55:00Z", "url": "https://status.openai.com/" },
-  "usage": {
-    "primary": { "usedPercent": 28, "windowMinutes": 300, "resetsAt": "2025-12-04T19:15:00Z" },
-    "secondary": { "usedPercent": 59, "windowMinutes": 10080, "resetsAt": "2025-12-05T17:00:00Z" },
-    "tertiary": null,
-    "updatedAt": "2025-12-04T18:10:22Z",
-    "identity": {
-      "providerID": "codex",
-      "accountEmail": "user@example.com",
-      "accountOrganization": null,
-      "loginMethod": "plus"
-    },
-    "accountEmail": "user@example.com",
-    "accountOrganization": null,
-    "loginMethod": "plus"
-  },
-  "credits": { "remaining": 112.4, "updatedAt": "2025-12-04T18:10:21Z" },
-  "antigravityPlanInfo": null,
-  "openaiDashboard": {
-    "signedInEmail": "user@example.com",
-    "codeReviewRemainingPercent": 100,
-    "creditEvents": [
-      { "id": "00000000-0000-0000-0000-000000000000", "date": "2025-12-04T00:00:00Z", "service": "CLI", "creditsUsed": 123.45 }
-    ],
-    "dailyBreakdown": [
-      {
-        "day": "2025-12-04",
-        "services": [{ "service": "CLI", "creditsUsed": 123.45 }],
-        "totalCreditsUsed": 123.45
-      }
-    ],
-    "updatedAt": "2025-12-04T18:10:21Z"
-  }
-}
-```
+API-backed and local-file providers are the most reliable today. Providers that
+depend on browser cookie extraction, WebKit dashboards, or interactive PTY
+sessions are still behind Windows platform gates until native implementations
+land.
 
-## Exit codes
-- 0: success
-- 2: provider missing (binary not on PATH)
-- 3: parse/format error
-- 4: CLI timeout
-- 1: unexpected failure
-
-## Notes
-- CLI uses the config file for enabled providers, ordering, and secrets.
-- CLI binary discovery checks explicit overrides, captured login PATH, inherited PATH, and known install paths before falling back to an interactive shell probe.
-- Reset lines follow the in-app reset time display setting when available (default: countdown).
-- Text output uses ANSI colors when stdout is a rich TTY; disable with `--no-color` or `NO_COLOR`/`TERM=dumb`.
-- Copilot CLI queries require an API token via config `apiKey` or `COPILOT_API_TOKEN`.
-- Codex CLI `auto` tries the OpenAI web dashboard, then Codex CLI RPC/PTy; the app’s Codex `auto` path prefers OAuth when credentials are present, then CLI.
-- Claude CLI `auto` tries web, then CLI PTY; the app’s Claude `auto` path prefers OAuth, then CLI, then web.
-- Kilo text output splits identity into `Plan:` and `Activity:` lines; in `--source auto`, resolved CLI fetches add
-  `Note: Using CLI fallback`.
-- Kilo auto-mode failures include a fallback-attempt summary line in text mode (API attempt then CLI attempt).
-- OpenAI web requires a signed-in `chatgpt.com` session in a supported browser or a manual cookie header. No passwords are stored; CodexBar reuses cookies.
-- Safari cookie import may require granting CodexBar Full Disk Access (System Settings → Privacy & Security → Full Disk Access).
-- The `openaiDashboard` JSON field is normally sourced from the app’s cached dashboard snapshot; `--source auto|web` refreshes it live via WebKit using a per-account cookie store.
-- Future: optional `--from-cache` flag to read the menubar app’s persisted snapshot (if/when that file lands).
+See [providers.md](providers.md) and [windows-port.md](windows-port.md).
