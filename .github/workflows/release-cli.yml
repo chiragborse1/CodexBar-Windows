@@ -66,6 +66,4 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: codexbar-windows-x86_64
-          path: |
-            ${{ steps.package.outputs.asset_path }}
-            ${{ steps.package.outputs.sha256_path }}
+          path: ${{ steps.package.outputs.package_dir }}

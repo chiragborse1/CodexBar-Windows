@@ -30,13 +30,17 @@ plan and compatibility notes.
 
 ## Install
 
-Windows release binaries will be published from this repository once a release
-is tagged:
+Windows release binaries are published from this repository:
 
 <https://github.com/chiragborse1/CodexBar-Windows/releases>
 
-Manual workflow artifacts can be downloaded from the `Release` or `CI` GitHub
-Actions workflow. The Windows artifact is named `codexbar-windows-x86_64`.
+Download the latest `CodexBar-Windows-<version>-windows-x86_64.zip` release
+asset, extract it, and run `CodexBar-Windows.exe`.
+
+Manual workflow artifacts can also be downloaded from the `Release` or `CI`
+GitHub Actions workflow. The Windows artifact is named
+`codexbar-windows-x86_64`; extracting it once gives you `CodexBar-Windows.exe`
+and `CodexBarCLI.exe`.
 
 To build from source on Windows:
 

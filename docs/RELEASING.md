@@ -3,25 +3,32 @@
 CodexBar-Windows releases are produced by the `Release` GitHub Actions
 workflow.
 
-## Windows Artifact
+## Release Assets
+
+Tagged releases upload these files directly to the GitHub Release:
+
+```text
+CodexBar-Windows-<tag>-windows-x86_64.zip
+CodexBar-Windows-<tag>-windows-x86_64.zip.sha256
+```
+
+Users download the app zip from the release page, extract it, and run
+`CodexBar-Windows.exe`.
+
+## Workflow Artifact
 
 The Windows artifact is uploaded as `codexbar-windows-x86_64`.
 
-Inside that workflow artifact is:
+Manual workflow artifacts are optimized for quick testing. Extracting the
+artifact once gives:
 
 ```text
-CodexBar-Windows-<tag-or-ref>-windows-x86_64.zip
-CodexBar-Windows-<tag-or-ref>-windows-x86_64.zip.sha256
+CodexBar-Windows.exe
+CodexBarCLI.exe
+README_RUN.txt
+VERSION
+...
 ```
-
-The app zip contains:
-
-- `CodexBar-Windows.exe`
-- `CodexBarCLI.exe`
-- Swift runtime DLLs copied from the Windows Swift toolchain
-- .NET runtime-dependent publish files
-- `README_RUN.txt`
-- `VERSION`
 
 ## Manual Test Release
 
@@ -35,9 +42,7 @@ gh run watch --repo chiragborse1/CodexBar-Windows --exit-status
 Download the `codexbar-windows-x86_64` artifact and smoke-test on Windows:
 
 ```powershell
-Expand-Archive .\codexbar-windows-x86_64.zip -DestinationPath .\artifact -Force
-cd .\artifact
-Expand-Archive .\CodexBar-Windows-main-windows-x86_64.zip -DestinationPath .\app -Force
+Expand-Archive .\codexbar-windows-x86_64.zip -DestinationPath .\app -Force
 cd .\app
 .\CodexBar-Windows.exe --smoke-test
 .\CodexBarCLI.exe --version

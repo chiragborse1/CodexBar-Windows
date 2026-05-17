@@ -42,6 +42,8 @@ The package script copies `CodexBarCLI.exe` and Swift runtime DLLs beside
 
 ## Packaging
 
-The `Release` workflow uploads `codexbar-windows-x86_64`. Inside that artifact
-is `CodexBar-Windows-<ref>-windows-x86_64.zip`, which contains the app, CLI
-backend, Swift runtime DLLs, publish files, `VERSION`, and `README_RUN.txt`.
+Tagged releases upload `CodexBar-Windows-<tag>-windows-x86_64.zip` directly to
+the GitHub Release. Manual workflow artifacts are named
+`codexbar-windows-x86_64`; extracting that artifact once gives the runnable app
+folder with the app, CLI backend, Swift runtime DLLs, publish files, `VERSION`,
+and `README_RUN.txt`.
