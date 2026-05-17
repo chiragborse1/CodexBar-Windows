@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.0-alpha.4 - 2026-05-17
+
+### Added
+- Added Windows Settings controls for saving config-backed provider API keys.
+- Added provider enable/disable actions in the Settings Providers tab.
+- Added a setup hint in the tray popover when no provider is configured.
+
+### Changed
+- The tray app now defaults to configured providers instead of querying every
+  known provider.
+- Saving a provider API key now focuses the tray scope on that provider.
+- Provider errors in the popover are labeled as setup or Windows-pending states
+  where possible.
+- Removed duplicate DPI configuration from the Windows app manifest.
+
 ## 0.1.0-alpha.3 - 2026-05-17
 
 ### Changed
