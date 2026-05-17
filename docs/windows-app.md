@@ -67,8 +67,9 @@ registration, install folder, launch-at-sign-in entry, and app settings unless
 
 - system tray icon and context menu
 - WPF CodexBar-style usage popover
-- provider cards with rounded panels, icon badges, usage bars, reset text,
-  credits, cost, status, and errors
+- compact menu-style provider cards with usage bars, reset text, credits, cost,
+  status, and errors
+- compact provider switcher at the top of Usage
 - embedded More view with raw CLI output, config actions, and provider
   compatibility
 - in-popover GitHub release update check
@@ -97,7 +98,8 @@ manual Cookie header through `CodexBarCLI.exe config set-cookie --stdin`. This
 is the Windows bridge until native Edge/Chrome/Firefox cookie import is
 implemented.
 
-The tray app defaults to the `enabled` provider scope. When a key is saved from
+The tray app defaults to the `enabled` provider scope. Use the compact provider
+switcher at the top of Usage for quick scope changes. When a key is saved from
 Settings, the scope moves to that provider so the popover shows the configured
 provider instead of every known provider.
 

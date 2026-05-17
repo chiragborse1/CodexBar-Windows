@@ -12,7 +12,9 @@ plus a standalone CLI for scripts and terminal workflows.
 ## Status
 
 Current build status:
-- Native Windows tray app opens a WPF CodexBar-style tray popover.
+- Native Windows tray app opens a compact WPF tray popover shaped after the
+  macOS menu-card flow.
+- Usage includes a compact provider switcher inside the popover.
 - Usage, Settings, and More now stay inside the popover instead of opening
   classic secondary windows.
 - Settings saves API keys for Windows-ready providers in Windows Credential
@@ -21,6 +23,8 @@ Current build status:
   Cookie header while native browser-cookie import is pending.
 - More includes diagnostics, provider compatibility, and a GitHub release
   update check inside the popover.
+- Windows usage no longer fails early just because a provider has a web source;
+  CLI/API/OAuth/manual-cookie fallbacks now run provider by provider.
 - Windows CLI build is wired into GitHub Actions.
 - Release packaging verifies `CodexBar-Windows.exe --smoke-test` and
   `CodexBarCLI.exe --version` from the packaged folder.
@@ -32,7 +36,7 @@ Current limitations:
 - Browser cookie extraction is stubbed on Windows.
 - PTY-backed Codex and Claude CLI sessions are stubbed on Windows.
 - The localhost HTTP `serve` command is stubbed on Windows.
-- Some macOS menu-card details, charts, and animations are still being
+- Some macOS charts, provider icons, and animation details are still being
   translated into native Windows UI.
 
 See [docs/windows-port.md](docs/windows-port.md) for the current implementation
@@ -47,9 +51,10 @@ Windows release binaries are published from this repository:
 Download the latest `CodexBar-Windows-<version>-windows-x86_64.zip` release
 asset, extract it, and run `CodexBar-Windows.exe`.
 
-Click the Windows tray icon to open the compact usage popover. Use `Settings`
-or `More` inside the popover for setup, raw CLI output, config actions, and the
-provider compatibility view.
+Click the Windows tray icon to open the compact usage popover. Use the provider
+switcher at the top of Usage to change scope quickly. Use `Settings` or `More`
+inside the popover for setup, raw CLI output, config actions, and the provider
+compatibility view.
 
 First-time setup:
 

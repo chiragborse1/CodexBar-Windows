@@ -17,8 +17,8 @@ codebuff, crof, venice, bedrock
 Some of these still require external tools or credentials, such as `gcloud`,
 provider API keys, or vendor CLI login files.
 
-The Windows app shows the same compatibility split in the dashboard
-`Compatibility` tab.
+The Windows app shows the same compatibility split in `More` > provider
+compatibility.
 
 ## Partial on Windows
 
@@ -33,9 +33,10 @@ commandcode, stepfun, grok
 ```
 
 Use API keys, manual cookies, or provider-specific environment variables where
-those modes exist. Native Windows browser-cookie import, Credential Manager
-storage, and ConPTY-backed interactive sessions are tracked in
-[windows-port.md](windows-port.md).
+those modes exist. The Windows CLI now lets provider-specific fallbacks run
+instead of rejecting a provider early just because it has a web source. Native
+Windows browser-cookie import and ConPTY-backed interactive sessions are
+tracked in [windows-port.md](windows-port.md).
 
 ## Provider IDs
 
