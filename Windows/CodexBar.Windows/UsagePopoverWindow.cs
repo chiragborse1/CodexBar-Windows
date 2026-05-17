@@ -306,6 +306,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         else
         {
             cardsStack.Children.Clear();
+            cardsStack.Children.Add(BuildProviderSwitcherSection(lastRows));
+            cardsStack.Children.Add(MenuDivider(new Wpf.Thickness(0, 3, 0, 7)));
             cardsStack.Children.Add(InfoCard(
                 "No usage loaded yet",
                 "Refresh to load provider usage from the bundled CLI.",
@@ -857,6 +859,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     private void RenderRows(IReadOnlyList<UsagePayloadRow> rows, CliResult result)
     {
         cardsStack.Children.Clear();
+        cardsStack.Children.Add(BuildProviderSwitcherSection(rows));
+        cardsStack.Children.Add(MenuDivider(new Wpf.Thickness(0, 3, 0, 7)));
         if (rows.Count == 0)
         {
             cardsStack.Children.Add(CreateEmptyState(result));
@@ -877,6 +881,86 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         cardsStack.Children.Add(MenuDivider());
         cardsStack.Children.Add(BuildUsageActionSection());
+    }
+
+    private Wpf.FrameworkElement BuildProviderSwitcherSection(IReadOnlyList<UsagePayloadRow> rows)
+    {
+        var wrap = new WpfControls.WrapPanel
+        {
+            Margin = new Wpf.Thickness(0, 0, 0, 0),
+        };
+
+        foreach (var choice in SwitcherProviderChoices(rows))
+        {
+            wrap.Children.Add(ProviderSwitchButton(choice.Id, choice.DisplayName));
+        }
+
+        return wrap;
+    }
+
+    private IReadOnlyList<ProviderChoice> SwitcherProviderChoices(IReadOnlyList<UsagePayloadRow> rows)
+    {
+        var selected = settings.Provider;
+        var ordered = rows
+            .OrderBy(RowSortRank)
+            .ThenBy(row => row.DisplayName)
+            .Select(row => row.Provider)
+            .Where(provider => !string.IsNullOrWhiteSpace(provider))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(10)
+            .ToList();
+
+        foreach (var id in new[] { selected, "enabled", "all" })
+        {
+            if (!string.IsNullOrWhiteSpace(id) &&
+                !ordered.Contains(id, StringComparer.OrdinalIgnoreCase))
+            {
+                ordered.Insert(0, id);
+            }
+        }
+
+        return ordered
+            .Select(id => new ProviderChoice(id, ProviderCatalog.DisplayNameFor(id)))
+            .ToArray();
+    }
+
+    private WpfControls.Button ProviderSwitchButton(string provider, string title)
+    {
+        var selected = string.Equals(settings.Provider, provider, StringComparison.OrdinalIgnoreCase);
+        var content = new WpfControls.StackPanel
+        {
+            Orientation = WpfControls.Orientation.Horizontal,
+        };
+        content.Children.Add(ProviderIcon(title, ProviderAccent(provider), 16, 8.5));
+        content.Children.Add(new WpfControls.TextBlock
+        {
+            Text = title,
+            FontSize = 11,
+            Foreground = selected ? Brush("#1D1D1F") : Brush("#6E6E73"),
+            Margin = new Wpf.Thickness(4, 0, 0, 0),
+            VerticalAlignment = Wpf.VerticalAlignment.Center,
+            TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
+        });
+
+        var button = new WpfControls.Button
+        {
+            Content = content,
+            Background = selected ? Brush("#E9E9EC") : WpfMedia.Brushes.White,
+            BorderBrush = selected ? Brush("#CFCFD5") : Brush("#E5E5EA"),
+            BorderThickness = new Wpf.Thickness(1),
+            Padding = new Wpf.Thickness(6, 4, 7, 5),
+            Margin = new Wpf.Thickness(0, 0, 5, 5),
+            Cursor = WpfInput.Cursors.Hand,
+            Template = RoundedButtonTemplate(6),
+        };
+        button.Click += async (_, _) =>
+        {
+            settings.Provider = provider;
+            SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+            ShowUsageView();
+            await RefreshUsageAsync();
+        };
+        return button;
     }
 
     private Wpf.FrameworkElement BuildUsageActionSection()
@@ -1526,22 +1610,26 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         });
     }
 
-    private static WpfControls.Border ProviderIcon(UsagePayloadRow row, WpfMedia.Brush accent)
+    private static WpfControls.Border ProviderIcon(
+        string displayName,
+        WpfMedia.Brush accent,
+        double size = 34,
+        double fontSize = 13.5)
     {
-        var letter = string.IsNullOrWhiteSpace(row.DisplayName)
+        var letter = string.IsNullOrWhiteSpace(displayName)
             ? "?"
-            : row.DisplayName.Trim()[0].ToString().ToUpperInvariant();
+            : displayName.Trim()[0].ToString().ToUpperInvariant();
 
         return new WpfControls.Border
         {
-            Width = 34,
-            Height = 34,
-            CornerRadius = new Wpf.CornerRadius(17),
+            Width = size,
+            Height = size,
+            CornerRadius = new Wpf.CornerRadius(size / 2),
             Background = accent,
             Child = new WpfControls.TextBlock
             {
                 Text = letter,
-                FontSize = 13.5,
+                FontSize = fontSize,
                 FontWeight = Wpf.FontWeights.SemiBold,
                 Foreground = WpfMedia.Brushes.White,
                 HorizontalAlignment = Wpf.HorizontalAlignment.Center,
