@@ -13,6 +13,6 @@
     <Copyright>Copyright (c) 2026 Chirag Borse</Copyright>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <Version>0.1.0</Version>
+    <Version>0.1.0-alpha.1</Version>
   </PropertyGroup>
 </Project>

@@ -18,7 +18,7 @@ Current build status:
   `CodexBarCLI.exe --version` from the packaged folder.
 - Windows release packaging is configured for an app `.zip` artifact containing
   `CodexBar-Windows.exe`, `CodexBarCLI.exe`, bundled Swift runtime DLLs,
-  `README_RUN.txt`, and `VERSION`.
+  `README_RUN.txt`, install scripts, and `VERSION`.
 
 Current limitations:
 - Browser cookie extraction is stubbed on Windows.

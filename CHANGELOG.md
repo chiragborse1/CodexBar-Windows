@@ -1,19 +1,23 @@
 # Changelog
 
-## 0.1.0 - Unreleased
+## 0.1.0-alpha.1 - 2026-05-17
 
 ### Added
 - Native Windows tray app with dashboard, settings, launch-at-sign-in support,
   config shortcuts, and CLI smoke-test mode.
 - Structured dashboard rendering from `CodexBarCLI.exe usage --format json`.
+- Provider compatibility view in the dashboard.
 - Windows release packaging that bundles the tray app, CLI backend, Swift
-  runtime DLLs, `README_RUN.txt`, and `VERSION`.
+  runtime DLLs, `README_RUN.txt`, install scripts, and `VERSION`.
 - Windows-only CI and release workflows.
+- User-profile install and uninstall scripts with Start Menu shortcut support.
 
 ### Changed
 - Re-scoped the repository around CodexBar-Windows and removed non-Windows app
   packaging, appcast, website, and fork-maintenance artifacts.
 - Updated project metadata and notices for the CodexBar-Windows port.
+- Manual GitHub Actions artifacts now extract directly to runnable app files.
+- Windows defaults now use `%APPDATA%\CodexBar-Windows\config.json`.
 
 ### Known Gaps
 - Browser-cookie extraction is not implemented on Windows yet.
