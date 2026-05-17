@@ -8,6 +8,7 @@ Run:
 
 Optional install:
   powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch
+  powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch -DesktopShortcut
 
 Uninstall after using install.ps1:
   powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
@@ -22,6 +23,9 @@ First-time setup:
   3. Paste its API key and click Save API Key.
   4. Return to Usage.
 
+For web-session providers, open Settings > Manual Web Session and paste a
+Cookie header.
+
 The bundled CLI backend is:
   CodexBarCLI.exe
 
@@ -34,7 +38,10 @@ Useful CLI checks:
   CodexBarCLI.exe usage --format json --pretty
   CodexBarCLI.exe usage --provider openrouter --format json --pretty
 
-Provider credentials and toggles are stored in:
+API keys saved from the app are stored in Windows Credential Manager.
+
+Provider toggles, manual Cookie headers, and advanced provider options are
+stored in:
   %APPDATA%\CodexBar-Windows\config.json
 
 App settings are stored in:
