@@ -28,7 +28,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
                 ShowPopover();
             }
         };
-        notifyIcon.DoubleClick += (_, _) => ShowDiagnostics();
+        notifyIcon.DoubleClick += (_, _) => ShowDiagnosticsInPopover();
 
         refreshTimer = new System.Windows.Forms.Timer();
         refreshTimer.Tick += async (_, _) => await RefreshUsageAsync();
@@ -61,8 +61,8 @@ internal sealed class TrayApplicationContext : ApplicationContext
         menu.Items.Add("Open CodexBar", null, (_, _) => ShowPopover());
         menu.Items.Add("Refresh Now", null, async (_, _) => await RefreshUsageAsync(forceShow: true));
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Settings", null, (_, _) => ShowSettings());
-        menu.Items.Add("Diagnostics", null, (_, _) => ShowDiagnostics());
+        menu.Items.Add("Settings", null, (_, _) => ShowSettingsInPopover());
+        menu.Items.Add("Diagnostics", null, (_, _) => ShowDiagnosticsInPopover());
         menu.Items.Add("Open Config File", null, (_, _) => SafeOpen(ConfigLocator.OpenConfigFile));
         menu.Items.Add("Open Config Folder", null, (_, _) => SafeOpen(ConfigLocator.OpenConfigFolder));
         menu.Items.Add(new ToolStripSeparator());
@@ -76,12 +76,23 @@ internal sealed class TrayApplicationContext : ApplicationContext
         if (popover is null || popover.IsClosed)
         {
             popover = new UsagePopoverWindow(settings, cliRunner);
-            popover.SettingsRequested += (_, _) => ShowSettings();
-            popover.DiagnosticsRequested += (_, _) => ShowDiagnostics();
+            popover.SettingsChanged += (_, args) => ApplySettings(args.Settings, showBalloon: false);
             popover.Closed += (_, _) => popover = null;
         }
 
         popover.ShowNearCursor();
+    }
+
+    private void ShowSettingsInPopover()
+    {
+        ShowPopover();
+        popover?.NavigateToSettings();
+    }
+
+    private void ShowDiagnosticsInPopover()
+    {
+        ShowPopover();
+        popover?.NavigateToDiagnostics();
     }
 
     private void ShowDiagnostics()
@@ -121,21 +132,29 @@ internal sealed class TrayApplicationContext : ApplicationContext
         using var form = new SettingsForm(settings, cliRunner);
         if (form.ShowDialog() == DialogResult.OK)
         {
-            settings = form.Settings;
-            settings.Save();
-            cliRunner = new CliRunner(settings);
-            ApplyTimerInterval();
+            ApplySettings(form.Settings, showBalloon: true);
+        }
+    }
 
-            if (popover is not null && !popover.IsClosed)
-            {
-                popover.ApplySettings(settings, cliRunner);
-            }
+    private void ApplySettings(AppSettings newSettings, bool showBalloon)
+    {
+        settings = newSettings;
+        settings.Save();
+        cliRunner = new CliRunner(settings);
+        ApplyTimerInterval();
 
-            if (diagnostics is not null && !diagnostics.IsDisposed)
-            {
-                diagnostics.ApplySettings(settings, cliRunner);
-            }
+        if (popover is not null && !popover.IsClosed)
+        {
+            popover.ApplySettings(settings, cliRunner);
+        }
 
+        if (diagnostics is not null && !diagnostics.IsDisposed)
+        {
+            diagnostics.ApplySettings(settings, cliRunner);
+        }
+
+        if (showBalloon)
+        {
             notifyIcon.ShowBalloonTip(
                 2000,
                 AppInfo.DisplayName,
