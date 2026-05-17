@@ -45,6 +45,15 @@ jobs:
             -ReleaseTag "ci-${{ github.sha }}" `
             -OutputRoot "$env:RUNNER_TEMP\codexbar-windows"
 
+      - name: Dev runner smoke check
+        shell: pwsh
+        run: |
+          ./Windows/dev-run.ps1 `
+            -NoBuild `
+            -NoLaunch `
+            -Test `
+            -OutputRoot "$env:RUNNER_TEMP\codexbar-windows"
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v6
         with:
