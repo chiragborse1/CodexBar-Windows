@@ -71,14 +71,13 @@ function Invoke-CheckedNative(
     }
 
     Write-Step $command
-    Push-Location $WorkingDirectory
-    try {
-        & $FilePath @Arguments
-        $exitCode = $LASTEXITCODE
-    }
-    finally {
-        Pop-Location
-    }
+    $process = Start-Process `
+        -FilePath $FilePath `
+        -ArgumentList $Arguments `
+        -WorkingDirectory $WorkingDirectory `
+        -Wait `
+        -PassThru
+    $exitCode = $process.ExitCode
 
     if ($exitCode -ne 0) {
         throw "$command failed with exit code $exitCode."
