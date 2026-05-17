@@ -22,7 +22,11 @@ internal static class SmokeTest
                   }
                 ]
                 """);
-            if (rows.Count != 1 || rows[0].Provider != "codex")
+            if (rows.Count != 1 ||
+                rows[0].Provider != "codex" ||
+                rows[0].DisplayName != "Codex" ||
+                rows[0].Metrics.Count != 1 ||
+                Math.Abs(rows[0].Metrics[0].RemainingPercent - 75) > 0.01)
             {
                 return 1;
             }

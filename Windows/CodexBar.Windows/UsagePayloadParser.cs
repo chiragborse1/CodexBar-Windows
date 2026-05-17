@@ -6,6 +6,7 @@ namespace CodexBar.Windows;
 internal sealed class UsagePayloadRow
 {
     public string Provider { get; init; } = "";
+    public string DisplayName { get; init; } = "";
     public string Account { get; init; } = "";
     public string Source { get; init; } = "";
     public string Status { get; init; } = "";
@@ -16,6 +17,18 @@ internal sealed class UsagePayloadRow
     public string Cost { get; init; } = "";
     public string Updated { get; init; } = "";
     public string Error { get; init; } = "";
+    public IReadOnlyList<UsagePayloadMetric> Metrics { get; init; } = [];
+}
+
+internal sealed class UsagePayloadMetric
+{
+    public string Id { get; init; } = "";
+    public string Title { get; init; } = "";
+    public double UsedPercent { get; init; }
+    public string Reset { get; init; } = "";
+    public string Detail { get; init; } = "";
+
+    public double RemainingPercent => Math.Clamp(100 - UsedPercent, 0, 100);
 }
 
 internal static class UsagePayloadParser
@@ -49,10 +62,12 @@ internal static class UsagePayloadParser
         var credits = ReadObject(item, "credits");
         var providerCost = usage.HasValue ? ReadObject(usage.Value, "providerCost") : null;
         var error = ReadObject(item, "error");
+        var provider = ReadString(item, "provider") ?? "unknown";
 
         return new UsagePayloadRow
         {
-            Provider = ReadString(item, "provider") ?? "unknown",
+            Provider = provider,
+            DisplayName = ProviderCatalog.DisplayNameFor(provider),
             Account = ReadString(item, "account") ?? ReadNestedString(usage, "identity", "accountEmail") ?? "",
             Source = ReadString(item, "source") ?? "",
             Status = FormatStatus(ReadObject(item, "status")),
@@ -63,7 +78,57 @@ internal static class UsagePayloadParser
             Cost = FormatCost(providerCost),
             Updated = ReadString(usage, "updatedAt") ?? ReadString(credits, "updatedAt") ?? "",
             Error = ReadString(error, "message") ?? "",
+            Metrics = usage.HasValue ? BuildMetrics(usage.Value) : [],
         };
+    }
+
+    private static IReadOnlyList<UsagePayloadMetric> BuildMetrics(JsonElement usage)
+    {
+        var metrics = new List<UsagePayloadMetric>();
+        AddMetric(metrics, "primary", "Primary", ReadObject(usage, "primary"));
+        AddMetric(metrics, "secondary", "Secondary", ReadObject(usage, "secondary"));
+        AddMetric(metrics, "tertiary", "Tertiary", ReadObject(usage, "tertiary"));
+
+        if (usage.TryGetProperty("extraRateWindows", out var extraRateWindows) &&
+            extraRateWindows.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in extraRateWindows.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var id = ReadString(item, "id") ?? $"extra-{metrics.Count}";
+                var title = ReadString(item, "title") ?? "Extra";
+                AddMetric(metrics, id, title, ReadObject(item, "window"));
+            }
+        }
+
+        return metrics;
+    }
+
+    private static void AddMetric(
+        List<UsagePayloadMetric> metrics,
+        string id,
+        string title,
+        JsonElement? window)
+    {
+        var used = ReadDouble(window, "usedPercent");
+        if (!used.HasValue)
+        {
+            return;
+        }
+
+        var reset = ReadString(window, "resetDescription") ?? ReadString(window, "resetsAt") ?? "";
+        metrics.Add(new UsagePayloadMetric
+        {
+            Id = id,
+            Title = title,
+            UsedPercent = Math.Clamp(used.Value, 0, 100),
+            Reset = reset,
+            Detail = FormatWindow(window),
+        });
     }
 
     private static string FormatStatus(JsonElement? status)

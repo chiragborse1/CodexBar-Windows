@@ -6,7 +6,8 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly System.Windows.Forms.Timer refreshTimer;
     private AppSettings settings;
     private CliRunner cliRunner;
-    private DashboardForm? dashboard;
+    private UsagePopoverForm? popover;
+    private DashboardForm? diagnostics;
 
     public TrayApplicationContext()
     {
@@ -20,16 +21,23 @@ internal sealed class TrayApplicationContext : ApplicationContext
             Visible = true,
             ContextMenuStrip = BuildMenu(),
         };
-        notifyIcon.DoubleClick += (_, _) => ShowDashboard();
+        notifyIcon.MouseUp += (_, args) =>
+        {
+            if (args.Button == MouseButtons.Left)
+            {
+                ShowPopover();
+            }
+        };
+        notifyIcon.DoubleClick += (_, _) => ShowDiagnostics();
 
         refreshTimer = new System.Windows.Forms.Timer();
-        refreshTimer.Tick += async (_, _) => await RefreshDashboardAsync();
+        refreshTimer.Tick += async (_, _) => await RefreshUsageAsync();
         ApplyTimerInterval();
 
         if (!Environment.GetCommandLineArgs().Contains("--minimized", StringComparer.OrdinalIgnoreCase) &&
             !settings.StartMinimized)
         {
-            ShowDashboard();
+            ShowPopover();
         }
     }
 
@@ -40,7 +48,8 @@ internal sealed class TrayApplicationContext : ApplicationContext
             refreshTimer.Dispose();
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
-            dashboard?.Dispose();
+            popover?.Dispose();
+            diagnostics?.Dispose();
         }
 
         base.Dispose(disposing);
@@ -49,10 +58,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private ContextMenuStrip BuildMenu()
     {
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Open Dashboard", null, (_, _) => ShowDashboard());
-        menu.Items.Add("Refresh Now", null, async (_, _) => await RefreshDashboardAsync(forceShow: true));
+        menu.Items.Add("Open CodexBar", null, (_, _) => ShowPopover());
+        menu.Items.Add("Refresh Now", null, async (_, _) => await RefreshUsageAsync(forceShow: true));
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Settings", null, (_, _) => ShowSettings());
+        menu.Items.Add("Diagnostics", null, (_, _) => ShowDiagnostics());
         menu.Items.Add("Open Config File", null, (_, _) => SafeOpen(ConfigLocator.OpenConfigFile));
         menu.Items.Add("Open Config Folder", null, (_, _) => SafeOpen(ConfigLocator.OpenConfigFolder));
         menu.Items.Add(new ToolStripSeparator());
@@ -61,30 +71,48 @@ internal sealed class TrayApplicationContext : ApplicationContext
         return menu;
     }
 
-    private void ShowDashboard()
+    private void ShowPopover()
     {
-        if (dashboard is null || dashboard.IsDisposed)
+        if (popover is null || popover.IsDisposed)
         {
-            dashboard = new DashboardForm(settings, cliRunner);
-            dashboard.SettingsRequested += (_, _) => ShowSettings();
-            dashboard.FormClosed += (_, _) => dashboard = null;
+            popover = new UsagePopoverForm(settings, cliRunner);
+            popover.SettingsRequested += (_, _) => ShowSettings();
+            popover.DiagnosticsRequested += (_, _) => ShowDiagnostics();
+            popover.FormClosed += (_, _) => popover = null;
         }
 
-        dashboard.Show();
-        dashboard.WindowState = FormWindowState.Normal;
-        dashboard.Activate();
+        popover.ShowNearCursor();
     }
 
-    private async Task RefreshDashboardAsync(bool forceShow = false)
+    private void ShowDiagnostics()
+    {
+        if (diagnostics is null || diagnostics.IsDisposed)
+        {
+            diagnostics = new DashboardForm(settings, cliRunner);
+            diagnostics.SettingsRequested += (_, _) => ShowSettings();
+            diagnostics.FormClosed += (_, _) => diagnostics = null;
+        }
+
+        diagnostics.Show();
+        diagnostics.WindowState = FormWindowState.Normal;
+        diagnostics.Activate();
+    }
+
+    private async Task RefreshUsageAsync(bool forceShow = false)
     {
         if (forceShow)
         {
-            ShowDashboard();
+            ShowPopover();
         }
 
-        if (dashboard is not null && !dashboard.IsDisposed)
+        if (popover is not null && !popover.IsDisposed && popover.Visible)
         {
-            await dashboard.RefreshUsageAsync();
+            await popover.RefreshUsageAsync();
+        }
+
+        if (diagnostics is not null && !diagnostics.IsDisposed)
+        {
+            await diagnostics.RefreshUsageAsync();
         }
     }
 
@@ -98,9 +126,14 @@ internal sealed class TrayApplicationContext : ApplicationContext
             cliRunner = new CliRunner(settings);
             ApplyTimerInterval();
 
-            if (dashboard is not null && !dashboard.IsDisposed)
+            if (popover is not null && !popover.IsDisposed)
             {
-                dashboard.ApplySettings(settings, cliRunner);
+                popover.ApplySettings(settings, cliRunner);
+            }
+
+            if (diagnostics is not null && !diagnostics.IsDisposed)
+            {
+                diagnostics.ApplySettings(settings, cliRunner);
             }
 
             notifyIcon.ShowBalloonTip(

@@ -56,4 +56,11 @@ internal static class ProviderCatalog
     ];
 
     public static string[] ProviderIds => Entries.Select(entry => entry.Id).ToArray();
+
+    public static string DisplayNameFor(string id)
+    {
+        var entry = Entries.FirstOrDefault(
+            item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase));
+        return entry?.DisplayName ?? id;
+    }
 }
