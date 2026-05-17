@@ -156,6 +156,60 @@ extension CodexBarCLI {
         Self.exit(code: .success, output: output, kind: .config)
     }
 
+    static func runConfigSetCookie(_ values: ParsedValues) {
+        let output = CLIOutputPreferences.from(values: values)
+
+        guard let rawProvider = values.options["provider"]?.last,
+              let provider = ProviderDescriptorRegistry.cliNameMap[rawProvider.lowercased()]
+        else {
+            Self.exit(
+                code: .failure,
+                message: "Unknown or missing provider. Use --provider <name>.",
+                output: output,
+                kind: .args)
+        }
+
+        let cookieHeader: String
+        do {
+            cookieHeader = try Self.resolveConfigCookieHeaderInput(
+                cookieHeader: values.options["cookieHeader"]?.last,
+                readFromStdin: values.flags.contains("stdin"))
+        } catch {
+            Self.exit(code: .failure, message: error.localizedDescription, output: output, kind: .args)
+        }
+
+        let enableProvider = !values.flags.contains("noEnable")
+        let store = CodexBarConfigStore()
+        var config = Self.loadConfig(output: output)
+        config = Self.configSettingCookieHeader(
+            config,
+            provider: provider,
+            cookieHeader: cookieHeader,
+            enableProvider: enableProvider)
+
+        do {
+            try store.save(config)
+        } catch {
+            Self.exit(code: .failure, message: error.localizedDescription, output: output, kind: .config)
+        }
+
+        let result = ConfigSetCookieResult(
+            provider: provider.rawValue,
+            enabled: config.providerConfig(for: provider)?.enabled ?? false,
+            configPath: store.fileURL.path)
+
+        switch output.format {
+        case .text:
+            let name = ProviderDescriptorRegistry.descriptor(for: provider).metadata.displayName
+            let suffix = result.enabled ? " and enabled" : ""
+            print("Config: stored manual Cookie header for \(name)\(suffix)")
+        case .json:
+            Self.printJSON(result, pretty: output.pretty)
+        }
+
+        Self.exit(code: .success, output: output, kind: .config)
+    }
+
     static func resolveConfigAPIKeyInput(apiKey: String?, readFromStdin: Bool) throws -> String {
         if apiKey != nil, readFromStdin {
             throw CLIArgumentError("Use either --api-key or --stdin, not both.")
@@ -173,6 +227,23 @@ extension CodexBarCLI {
         return value
     }
 
+    static func resolveConfigCookieHeaderInput(cookieHeader: String?, readFromStdin: Bool) throws -> String {
+        if cookieHeader != nil, readFromStdin {
+            throw CLIArgumentError("Use either --cookie-header or --stdin, not both.")
+        }
+
+        let raw: String? = if readFromStdin {
+            String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8)
+        } else {
+            cookieHeader
+        }
+
+        guard let value = Self.cleanConfigSecret(raw) else {
+            throw CLIArgumentError("Missing Cookie header. Pass --cookie-header <header> or pipe it with --stdin.")
+        }
+        return value
+    }
+
     static func configSettingAPIKey(
         _ config: CodexBarConfig,
         provider: UsageProvider,
@@ -182,6 +253,23 @@ extension CodexBarCLI {
         var updated = config.normalized()
         var providerConfig = updated.providerConfig(for: provider) ?? ProviderConfig(id: provider)
         providerConfig.apiKey = apiKey
+        if enableProvider {
+            providerConfig.enabled = true
+        }
+        updated.setProviderConfig(providerConfig)
+        return updated
+    }
+
+    static func configSettingCookieHeader(
+        _ config: CodexBarConfig,
+        provider: UsageProvider,
+        cookieHeader: String,
+        enableProvider: Bool) -> CodexBarConfig
+    {
+        var updated = config.normalized()
+        var providerConfig = updated.providerConfig(for: provider) ?? ProviderConfig(id: provider)
+        providerConfig.cookieHeader = cookieHeader
+        providerConfig.cookieSource = .manual
         if enableProvider {
             providerConfig.enabled = true
         }
@@ -287,6 +375,41 @@ struct ConfigSetAPIKeyOptions: CommanderParsable {
     var noEnable: Bool = false
 }
 
+struct ConfigSetCookieOptions: CommanderParsable {
+    @Flag(names: [.short("v"), .long("verbose")], help: "Enable verbose logging")
+    var verbose: Bool = false
+
+    @Flag(name: .long("json-output"), help: "Emit machine-readable logs")
+    var jsonOutput: Bool = false
+
+    @Option(name: .long("log-level"), help: "Set log level (trace|verbose|debug|info|warning|error|critical)")
+    var logLevel: String?
+
+    @Option(name: .long("format"), help: "Output format: text | json")
+    var format: OutputFormat?
+
+    @Flag(name: .long("json"), help: "")
+    var jsonShortcut: Bool = false
+
+    @Flag(name: .long("json-only"), help: "Emit JSON only (suppress non-JSON output)")
+    var jsonOnly: Bool = false
+
+    @Flag(name: .long("pretty"), help: "Pretty-print JSON output")
+    var pretty: Bool = false
+
+    @Option(name: .long("provider"), help: ProviderHelp.optionHelp)
+    var provider: String?
+
+    @Option(name: .long("cookie-header"), help: "HTTP Cookie header to store")
+    var cookieHeader: String?
+
+    @Flag(name: .long("stdin"), help: "Read Cookie header from stdin")
+    var stdin: Bool = false
+
+    @Flag(name: .long("no-enable"), help: "Store the Cookie header without enabling the provider")
+    var noEnable: Bool = false
+}
+
 struct ConfigProviderToggleOptions: CommanderParsable {
     @Flag(names: [.short("v"), .long("verbose")], help: "Enable verbose logging")
     var verbose: Bool = false
@@ -314,6 +437,12 @@ struct ConfigProviderToggleOptions: CommanderParsable {
 }
 
 private struct ConfigSetAPIKeyResult: Encodable {
+    let provider: String
+    let enabled: Bool
+    let configPath: String
+}
+
+private struct ConfigSetCookieResult: Encodable {
     let provider: String
     let enabled: Bool
     let configPath: String

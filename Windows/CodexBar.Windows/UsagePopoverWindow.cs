@@ -414,6 +414,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             general));
 
         root.Children.Add(BuildProviderSetupSection());
+        root.Children.Add(BuildCookieSetupSection());
         return root;
     }
 
@@ -580,6 +581,100 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         {
             SetButtonsEnabled(true, buttons);
         }
+    }
+
+    private Wpf.FrameworkElement BuildCookieSetupSection()
+    {
+        var providerBox = new WpfControls.ComboBox
+        {
+            MinHeight = 34,
+            ItemsSource = ProviderCatalog.CookieEntries
+                .Select(entry => new ProviderChoice(entry.Id, entry.DisplayName))
+                .ToArray(),
+            SelectedIndex = 0,
+        };
+        var cookieBox = new WpfControls.TextBox
+        {
+            MinHeight = 78,
+            MaxHeight = 120,
+            AcceptsReturn = true,
+            TextWrapping = Wpf.TextWrapping.Wrap,
+            VerticalScrollBarVisibility = WpfControls.ScrollBarVisibility.Auto,
+            FontFamily = new WpfMedia.FontFamily("Consolas"),
+            FontSize = 11.5,
+            Padding = new Wpf.Thickness(8),
+        };
+        var enableBox = new WpfControls.CheckBox
+        {
+            Content = "Enable provider after saving",
+            IsChecked = true,
+            Margin = new Wpf.Thickness(0, 8, 0, 0),
+        };
+        var resultText = Caption("Manual Cookie headers are saved in the local config file.");
+        var saveButton = PrimaryButton("Save Cookie");
+        var clearButton = SecondaryButton("Clear Text");
+
+        saveButton.Click += async (_, _) =>
+        {
+            if (providerBox.SelectedItem is not ProviderChoice provider)
+            {
+                SetResult(resultText, "Choose a provider first.", isError: true);
+                return;
+            }
+
+            var cookieHeader = cookieBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(cookieHeader))
+            {
+                SetResult(resultText, "Paste a Cookie header before saving.", isError: true);
+                return;
+            }
+
+            SetButtonsEnabled(false, saveButton, clearButton);
+            SetResult(resultText, "Saving manual Cookie header...", isError: false);
+            try
+            {
+                var result = await cliRunner.SetCookieHeaderAsync(
+                    provider.Id,
+                    cookieHeader,
+                    enableBox.IsChecked == true,
+                    CancellationToken.None);
+                if (result.Succeeded)
+                {
+                    cookieBox.Clear();
+                    settings.Provider = provider.Id;
+                    SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+                    SetResult(resultText, $"Saved manual Cookie header for {provider.DisplayName}.", isError: false);
+                }
+                else
+                {
+                    SetResult(resultText, ShortResultMessage(result), isError: true);
+                }
+            }
+            finally
+            {
+                SetButtonsEnabled(true, saveButton, clearButton);
+            }
+        };
+        clearButton.Click += (_, _) =>
+        {
+            cookieBox.Clear();
+            resultText.Text = "Manual Cookie headers are saved in the local config file.";
+            resultText.Foreground = Brush("#64748B");
+        };
+
+        var content = new WpfControls.StackPanel();
+        content.Children.Add(FieldLabel("Web provider"));
+        content.Children.Add(providerBox);
+        content.Children.Add(FieldLabel("Cookie header"));
+        content.Children.Add(cookieBox);
+        content.Children.Add(enableBox);
+        content.Children.Add(ActionRow(saveButton, clearButton));
+        content.Children.Add(resultText);
+
+        return SectionCard(
+            "Manual Web Session",
+            "Use this for providers whose Windows browser-cookie auto import is still pending.",
+            content);
     }
 
     private Wpf.FrameworkElement BuildDiagnosticsView()

@@ -74,6 +74,35 @@ internal sealed class CliRunner
             TimeSpan.FromSeconds(20),
             cancellationToken);
 
+    public Task<CliResult> SetCookieHeaderAsync(
+        string provider,
+        string cookieHeader,
+        bool enableProvider,
+        CancellationToken cancellationToken)
+    {
+        var arguments = new List<string>
+        {
+            "config",
+            "set-cookie",
+            "--provider",
+            provider,
+            "--stdin",
+            "--format",
+            "json",
+            "--pretty",
+        };
+        if (!enableProvider)
+        {
+            arguments.Add("--no-enable");
+        }
+
+        return RunAsync(
+            arguments,
+            TimeSpan.FromSeconds(20),
+            cancellationToken,
+            standardInput: cookieHeader);
+    }
+
     public Task<CliResult> UsageTextAsync(CancellationToken cancellationToken) =>
         RunAsync(
             UsageArguments("text", noColor: true),

@@ -45,6 +45,8 @@ enum CodexBarCLI {
                 self.runConfigSetProviderEnabled(invocation.parsedValues, enabled: false)
             case ["config", "set-api-key"]:
                 self.runConfigSetAPIKey(invocation.parsedValues)
+            case ["config", "set-cookie"]:
+                self.runConfigSetCookie(invocation.parsedValues)
             case ["cache", "clear"]:
                 self.runCacheClear(invocation.parsedValues)
             default:
@@ -68,6 +70,7 @@ enum CodexBarCLI {
         let configSignature = CommandSignature.describe(ConfigOptions())
         let configProviderToggleSignature = CommandSignature.describe(ConfigProviderToggleOptions())
         let configSetAPIKeySignature = CommandSignature.describe(ConfigSetAPIKeyOptions())
+        let configSetCookieSignature = CommandSignature.describe(ConfigSetCookieOptions())
         let cacheSignature = CommandSignature.describe(CacheOptions())
 
         return [
@@ -122,6 +125,11 @@ enum CodexBarCLI {
                         abstract: "Store a provider API key",
                         discussion: nil,
                         signature: configSetAPIKeySignature),
+                    CommandDescriptor(
+                        name: "set-cookie",
+                        abstract: "Store a provider manual Cookie header",
+                        discussion: nil,
+                        signature: configSetCookieSignature),
                 ],
                 defaultSubcommandName: "validate"),
             CommandDescriptor(

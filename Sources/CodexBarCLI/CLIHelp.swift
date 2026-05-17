@@ -122,12 +122,16 @@ extension CodexBarCLI {
           codexbar config set-api-key --provider <name> (--api-key <key>|--stdin)
                                     [--no-enable]
                                     [--format text|json] [--json] [--json-only] [--pretty]
+          codexbar config set-cookie --provider <name> (--cookie-header <header>|--stdin)
+                                    [--no-enable]
+                                    [--format text|json] [--json] [--json-only] [--pretty]
 
         Description:
           Validate or print the CodexBar-Windows config file (default: validate).
           providers lists persistent provider enablement.
           enable/disable updates the same provider toggle used by Settings.
           set-api-key stores a provider API key in the config file and enables that provider by default.
+          set-cookie stores a manual HTTP Cookie header and enables that provider by default.
 
         Examples:
           codexbar config validate --format json --pretty
@@ -136,6 +140,7 @@ extension CodexBarCLI {
           codexbar config enable --provider grok
           codexbar config disable --provider cursor
           printf '%s' "$ELEVENLABS_API_KEY" | codexbar config set-api-key --provider elevenlabs --stdin
+          printf '%s' "$COOKIE_HEADER" | codexbar config set-cookie --provider cursor --stdin
         """
     }
 
@@ -196,6 +201,7 @@ extension CodexBarCLI {
           codexbar config enable --provider <name>
           codexbar config disable --provider <name>
           codexbar config set-api-key --provider <name> (--api-key <key>|--stdin)
+          codexbar config set-cookie --provider <name> (--cookie-header <header>|--stdin)
           codexbar cache clear <--cookies|--cost|--all> [--provider <name>]
 
         Global flags:
@@ -216,6 +222,7 @@ extension CodexBarCLI {
           codexbar config validate --format json --pretty
           codexbar config enable --provider grok
           codexbar config set-api-key --provider elevenlabs --stdin
+          codexbar config set-cookie --provider cursor --stdin
           codexbar cache clear --cookies
         """
     }

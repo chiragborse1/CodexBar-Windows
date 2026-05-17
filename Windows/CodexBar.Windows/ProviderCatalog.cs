@@ -87,6 +87,38 @@ internal static class ProviderCatalog
         .Select(entry => entry!)
         .ToArray();
 
+    public static string[] CookieProviderIds =>
+    [
+        "codex",
+        "claude",
+        "cursor",
+        "opencode",
+        "opencodego",
+        "alibaba",
+        "factory",
+        "minimax",
+        "manus",
+        "kimi",
+        "amp",
+        "augment",
+        "ollama",
+        "windsurf",
+        "perplexity",
+        "mimo",
+        "abacus",
+        "mistral",
+        "commandcode",
+        "stepfun",
+        "grok",
+    ];
+
+    public static ProviderCatalogEntry[] CookieEntries => CookieProviderIds
+        .Select(id => Entries.FirstOrDefault(
+            entry => string.Equals(entry.Id, id, StringComparison.OrdinalIgnoreCase)))
+        .Where(entry => entry is not null)
+        .Select(entry => entry!)
+        .ToArray();
+
     public static string DisplayNameFor(string id)
     {
         var entry = Entries.FirstOrDefault(
