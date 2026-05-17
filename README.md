@@ -6,20 +6,20 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-6e5aff?style=flat-square)](LICENSE)
 
 CodexBar-Windows is a Windows-focused usage tracker for AI coding providers.
-The first milestone is a Windows CLI that exposes provider usage and cost data
-as text or JSON. The next milestone is a native Windows tray app that consumes
-the same CLI/core engine.
+It ships a native Windows tray app that wraps the shared CLI/provider engine,
+plus a standalone CLI for scripts and terminal workflows.
 
 ## Status
 
 Current build status:
+- Native Windows tray app is wired into GitHub Actions and release packaging.
 - Windows CLI build is wired into GitHub Actions.
 - `CodexBarCLI.exe --help` and `CodexBarCLI.exe --version` pass smoke tests on
   `windows-latest`.
-- Windows release packaging is configured for a `.zip` artifact.
+- Windows release packaging is configured for an app `.zip` artifact containing
+  `CodexBar-Windows.exe` and `CodexBarCLI.exe`.
 
 Current limitations:
-- The Windows tray app is not implemented yet.
 - Browser cookie extraction is stubbed on Windows.
 - PTY-backed Codex and Claude CLI sessions are stubbed on Windows.
 - The localhost HTTP `serve` command is stubbed on Windows.
@@ -29,22 +29,25 @@ plan and compatibility notes.
 
 ## Install
 
-Windows release binaries will be published from this repository once the first
-Windows release is tagged:
+Windows release binaries will be published from this repository once a release
+is tagged:
 
 <https://github.com/chiragborse1/CodexBar-Windows/releases>
 
-Until then, build the CLI from source on Windows:
+Manual workflow artifacts can be downloaded from the `Release` GitHub
+Actions workflow. The Windows artifact is named `codexbar-windows-x86_64`.
+
+To build from source on Windows:
 
 ```powershell
 swift build -c release --product CodexBarCLI
-$binDir = swift build -c release --product CodexBarCLI --show-bin-path
-& "$binDir\CodexBarCLI.exe" --help
+dotnet publish Windows\CodexBar.Windows\CodexBar.Windows.csproj -c Release -r win-x64 --self-contained false
 ```
 
 ## CLI Examples
 
 ```powershell
+CodexBar-Windows.exe
 CodexBarCLI.exe --version
 CodexBarCLI.exe usage --format json --provider all --pretty
 CodexBarCLI.exe config providers
@@ -59,8 +62,8 @@ phase.
 
 ## Roadmap
 
-1. Keep the Windows CLI green in CI.
-2. Add a Windows tray shell.
+1. Keep the Windows tray app and CLI green in CI.
+2. Improve dashboard rendering for structured provider JSON.
 3. Add Windows Credential Manager storage.
 4. Add browser profile cookie extraction for Edge, Chrome, Firefox, and
    Chromium.
@@ -74,6 +77,7 @@ Useful commands:
 
 ```powershell
 swift build -c release --product CodexBarCLI
+dotnet publish Windows\CodexBar.Windows\CodexBar.Windows.csproj -c Release -r win-x64 --self-contained false
 swift test
 ```
 

@@ -1,4 +1,4 @@
-name: Release CLI
+name: Release
 
 on:
   release:
@@ -265,6 +265,20 @@ jobs:
           & $bin --version | Out-Null
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish Windows tray app
+        shell: pwsh
+        run: |
+          dotnet publish Windows/CodexBar.Windows/CodexBar.Windows.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained false `
+            /p:PublishSingleFile=false
+
       - name: Package
         id: pkg
         shell: pwsh
@@ -278,18 +292,21 @@ jobs:
           $version = $safeRef.TrimStart("v")
           $binDir = swift build -c release --product CodexBarCLI --show-bin-path
           $bin = Join-Path $binDir "CodexBarCLI.exe"
-          $outDir = Join-Path $env:RUNNER_TEMP "codexbar-cli-windows-x86_64"
+          $publishDir = Join-Path $PWD "Windows\CodexBar.Windows\bin\Release\net8.0-windows10.0.17763.0\win-x64\publish"
+          $outDir = Join-Path $env:RUNNER_TEMP "codexbar-windows-x86_64"
           New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+          Copy-Item (Join-Path $publishDir "*") $outDir -Recurse -Force
           Copy-Item $bin (Join-Path $outDir "CodexBarCLI.exe") -Force
-          Copy-Item $bin (Join-Path $outDir "CodexBar-Windows.exe") -Force
+          Copy-Item "Windows\CodexBar.Windows\README_RUN.txt" (Join-Path $outDir "README_RUN.txt") -Force
           Set-Content -Path (Join-Path $outDir "VERSION") -Value $version -NoNewline
+
+          $app = Join-Path $outDir "CodexBar-Windows.exe"
+          & $app --smoke-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
           $asset = "CodexBar-Windows-$safeRef-windows-x86_64.zip"
           $assetPath = Join-Path $env:RUNNER_TEMP $asset
-          Compress-Archive `
-            -Path (Join-Path $outDir "CodexBarCLI.exe"), (Join-Path $outDir "CodexBar-Windows.exe"), (Join-Path $outDir "VERSION") `
-            -DestinationPath $assetPath `
-            -Force
+          Compress-Archive -Path (Join-Path $outDir "*") -DestinationPath $assetPath -Force
 
           $hash = (Get-FileHash -Algorithm SHA256 $assetPath).Hash.ToLowerInvariant()
           Set-Content -Path "$assetPath.sha256" -Value "$hash  $asset"
