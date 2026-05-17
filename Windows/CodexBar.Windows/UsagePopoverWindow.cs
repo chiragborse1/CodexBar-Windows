@@ -249,7 +249,12 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             return;
         }
 
-        foreach (var row in rows)
+        if (ShouldShowSetupHint(rows))
+        {
+            cardsStack.Children.Add(CreateSetupHintCard());
+        }
+
+        foreach (var row in rows.OrderBy(RowSortRank).ThenBy(row => row.DisplayName))
         {
             cardsStack.Children.Add(CreateProviderCard(row));
         }
@@ -320,8 +325,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var percent = row.Metrics.FirstOrDefault()?.RemainingPercent;
         var pill = StatusPill(
             percent.HasValue ? $"{percent.Value:0}% left" : StatusLabel(row),
-            percent.HasValue ? accent : Brush("#6B7280"),
-            percent.HasValue ? Tint(accent, 0.92) : Brush("#F3F4F6"));
+            percent.HasValue ? accent : StatusForeground(row),
+            percent.HasValue ? Tint(accent, 0.92) : StatusBackground(row));
         WpfControls.Grid.SetColumn(pill, 2);
         header.Children.Add(pill);
 
@@ -335,8 +340,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         else
         {
             stack.Children.Add(MessageLine(
-                string.IsNullOrWhiteSpace(row.Error) ? "Limits not available for this provider yet." : row.Error,
-                string.IsNullOrWhiteSpace(row.Error) ? Brush("#6B7280") : Brush("#B42318"),
+                string.IsNullOrWhiteSpace(row.Error) ? "Limits not available for this provider yet." : FriendlyError(row),
+                string.IsNullOrWhiteSpace(row.Error) ? Brush("#6B7280") : ErrorBrush(row),
                 new Wpf.Thickness(0, 12, 0, 0)));
         }
 
@@ -355,8 +360,57 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         if (!string.IsNullOrWhiteSpace(row.Error) && row.Metrics.Count > 0)
         {
-            stack.Children.Add(MessageLine(row.Error, Brush("#B42318"), new Wpf.Thickness(0, 8, 0, 0)));
+            stack.Children.Add(MessageLine(FriendlyError(row), ErrorBrush(row), new Wpf.Thickness(0, 8, 0, 0)));
         }
+
+        return card;
+    }
+
+    private Wpf.FrameworkElement CreateSetupHintCard()
+    {
+        var card = new WpfControls.Border
+        {
+            Background = Brush("#EEF6FF"),
+            BorderBrush = Brush("#B7D8FF"),
+            BorderThickness = new Wpf.Thickness(1),
+            CornerRadius = new Wpf.CornerRadius(8),
+            Padding = new Wpf.Thickness(12),
+            Margin = new Wpf.Thickness(0, 0, 0, 10),
+        };
+
+        var grid = new WpfControls.Grid();
+        grid.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = new Wpf.GridLength(1, Wpf.GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = Wpf.GridLength.Auto });
+        card.Child = grid;
+
+        var textStack = new WpfControls.StackPanel
+        {
+            Margin = new Wpf.Thickness(0, 0, 12, 0),
+        };
+        WpfControls.Grid.SetColumn(textStack, 0);
+        grid.Children.Add(textStack);
+        textStack.Children.Add(new WpfControls.TextBlock
+        {
+            Text = "Set up a Windows provider",
+            FontSize = 13.5,
+            FontWeight = Wpf.FontWeights.SemiBold,
+            Foreground = Brush("#153E75"),
+        });
+        textStack.Children.Add(new WpfControls.TextBlock
+        {
+            Text = "Save an API key in Settings to replace these setup and compatibility messages with live usage.",
+            FontSize = 11.5,
+            Foreground = Brush("#34547A"),
+            TextWrapping = Wpf.TextWrapping.Wrap,
+            Margin = new Wpf.Thickness(0, 3, 0, 0),
+        });
+
+        var button = PopoverButton("Open Settings");
+        button.Margin = new Wpf.Thickness(0);
+        button.VerticalAlignment = Wpf.VerticalAlignment.Center;
+        button.Click += (_, _) => SettingsRequested?.Invoke(this, EventArgs.Empty);
+        WpfControls.Grid.SetColumn(button, 1);
+        grid.Children.Add(button);
 
         return card;
     }
@@ -555,11 +609,112 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         if (!string.IsNullOrWhiteSpace(row.Error))
         {
+            if (NeedsApiKeySetup(row))
+            {
+                return "Setup";
+            }
+
+            if (IsWindowsPendingError(row.Error))
+            {
+                return "Pending";
+            }
+
             return "Error";
         }
 
         return string.IsNullOrWhiteSpace(row.Status) ? "Ready" : row.Status.Split(':')[0];
     }
+
+    private static WpfMedia.Brush StatusForeground(UsagePayloadRow row)
+    {
+        if (NeedsApiKeySetup(row))
+        {
+            return Brush("#8A5A00");
+        }
+
+        if (!string.IsNullOrWhiteSpace(row.Error) && IsWindowsPendingError(row.Error))
+        {
+            return Brush("#4B5563");
+        }
+
+        return string.IsNullOrWhiteSpace(row.Error) ? Brush("#15803D") : Brush("#B42318");
+    }
+
+    private static WpfMedia.Brush StatusBackground(UsagePayloadRow row)
+    {
+        if (NeedsApiKeySetup(row))
+        {
+            return Brush("#FEF3C7");
+        }
+
+        if (!string.IsNullOrWhiteSpace(row.Error) && IsWindowsPendingError(row.Error))
+        {
+            return Brush("#F3F4F6");
+        }
+
+        return string.IsNullOrWhiteSpace(row.Error) ? Brush("#DCFCE7") : Brush("#FEE4E2");
+    }
+
+    private static WpfMedia.Brush ErrorBrush(UsagePayloadRow row) =>
+        NeedsApiKeySetup(row) || IsWindowsPendingError(row.Error) ? Brush("#6B7280") : Brush("#B42318");
+
+    private static string FriendlyError(UsagePayloadRow row)
+    {
+        if (NeedsApiKeySetup(row))
+        {
+            return "Add this provider's API key in Settings to enable Windows usage checks.";
+        }
+
+        if (IsWindowsPendingError(row.Error))
+        {
+            return "This source is not available on Windows yet.";
+        }
+
+        return row.Error;
+    }
+
+    private bool ShouldShowSetupHint(IReadOnlyList<UsagePayloadRow> rows) =>
+        string.Equals(settings.Provider, "all", StringComparison.OrdinalIgnoreCase) &&
+        rows.Count > 0 &&
+        rows.All(row => row.Metrics.Count == 0) &&
+        rows.Any(row => !string.IsNullOrWhiteSpace(row.Error));
+
+    private static int RowSortRank(UsagePayloadRow row)
+    {
+        if (row.Metrics.Count > 0)
+        {
+            return 0;
+        }
+
+        if (string.IsNullOrWhiteSpace(row.Error))
+        {
+            return 1;
+        }
+
+        if (NeedsApiKeySetup(row))
+        {
+            return 2;
+        }
+
+        return IsWindowsPendingError(row.Error) ? 3 : 4;
+    }
+
+    private static bool NeedsApiKeySetup(UsagePayloadRow row) =>
+        ProviderCatalog.SupportsConfigApiKey(row.Provider) &&
+        !string.IsNullOrWhiteSpace(row.Error) &&
+        (ContainsIgnoreCase(row.Error, "No available fetch strategy") ||
+            ContainsIgnoreCase(row.Error, "api key") ||
+            ContainsIgnoreCase(row.Error, "api token") ||
+            ContainsIgnoreCase(row.Error, "credential") ||
+            ContainsIgnoreCase(row.Error, "selected source requires web support"));
+
+    private static bool IsWindowsPendingError(string error) =>
+        ContainsIgnoreCase(error, "only supported on macOS") ||
+        ContainsIgnoreCase(error, "requires web support") ||
+        ContainsIgnoreCase(error, "browser cookie import");
+
+    private static bool ContainsIgnoreCase(string text, string value) =>
+        text.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
 
     private static IReadOnlyList<UsagePayloadRow> TryParseRows(string json)
     {
