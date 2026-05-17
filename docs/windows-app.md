@@ -7,7 +7,9 @@ Windows/CodexBar.Windows
 ```
 
 The app is a WinForms shell around `CodexBarCLI.exe`. It keeps the provider
-engine in Swift while giving Windows users a normal tray entry point.
+engine in Swift while giving Windows users a normal tray entry point. The
+primary UI is a compact tray popover that follows the macOS CodexBar menu-card
+model; the larger table view is kept as diagnostics.
 
 ## Build
 
@@ -43,13 +45,14 @@ and app settings unless `-KeepSettings` is passed.
 ## Features
 
 - system tray icon and context menu
-- dashboard window
-- structured usage dashboard backed by CLI JSON
-- provider compatibility tab
-- raw CLI output view for debugging
+- compact CodexBar-style usage popover
+- provider cards with usage bars, reset text, credits, cost, status, and errors
+- diagnostics window with structured usage table, compatibility table, and raw
+  CLI output
 - usage refresh through the CLI backend
 - provider selection
 - CLI path override
+- tabbed settings sections for General, Display, Providers, Advanced, and About
 - launch at sign-in toggle
 - start minimized toggle
 - config file/folder shortcuts

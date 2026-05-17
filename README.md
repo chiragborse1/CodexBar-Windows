@@ -12,7 +12,7 @@ plus a standalone CLI for scripts and terminal workflows.
 ## Status
 
 Current build status:
-- Native Windows tray app is wired into GitHub Actions and release packaging.
+- Native Windows tray app opens a compact CodexBar-style tray popover.
 - Windows CLI build is wired into GitHub Actions.
 - Release packaging verifies `CodexBar-Windows.exe --smoke-test` and
   `CodexBarCLI.exe --version` from the packaged folder.
@@ -24,6 +24,8 @@ Current limitations:
 - Browser cookie extraction is stubbed on Windows.
 - PTY-backed Codex and Claude CLI sessions are stubbed on Windows.
 - The localhost HTTP `serve` command is stubbed on Windows.
+- Some macOS menu-card details, charts, and provider setup flows are still being
+  translated into native Windows UI.
 
 See [docs/windows-port.md](docs/windows-port.md) for the current implementation
 plan and compatibility notes.
@@ -36,6 +38,10 @@ Windows release binaries are published from this repository:
 
 Download the latest `CodexBar-Windows-<version>-windows-x86_64.zip` release
 asset, extract it, and run `CodexBar-Windows.exe`.
+
+Click the Windows tray icon to open the compact usage popover. Use `More` or
+the tray context menu to open diagnostics with the raw CLI output and provider
+compatibility table.
 
 To install it into your user profile and create a Start Menu shortcut:
 
@@ -73,7 +79,7 @@ file at `%APPDATA%\CodexBar-Windows\config.json`.
 ## Roadmap
 
 1. Keep the Windows tray app and CLI green in CI.
-2. Improve dashboard rendering for structured provider JSON.
+2. Continue matching the macOS menu-card and settings experience on Windows.
 3. Add Windows Credential Manager storage.
 4. Add browser profile cookie extraction for Edge, Chrome, Firefox, and
    Chromium.

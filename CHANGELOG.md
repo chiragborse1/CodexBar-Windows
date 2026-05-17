@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0-alpha.2 - 2026-05-17
+
+### Added
+- Compact CodexBar-style tray popover as the primary Windows UI.
+- Provider usage cards with usage bars, reset text, status, credits, cost, and
+  error summaries.
+- Tabbed Settings sections for General, Display, Providers, Advanced, and About.
+
+### Changed
+- Moved the grid dashboard, raw CLI output, and provider compatibility table
+  into a secondary diagnostics window.
+- Updated tray behavior so a normal tray click opens the popover.
+
 ## 0.1.0-alpha.1 - 2026-05-17
 
 ### Added
