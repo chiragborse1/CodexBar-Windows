@@ -10,12 +10,15 @@ require macOS-only browser, WebKit, or Keychain behavior:
 
 ```text
 openai, gemini, antigravity, copilot, zai, kilo, vertexai, jetbrains, kimik2,
-moonshot, amp, synthetic, warp, openrouter, elevenlabs, doubao, deepseek,
+moonshot, synthetic, warp, openrouter, elevenlabs, doubao, deepseek,
 codebuff, crof, venice, bedrock
 ```
 
 Some of these still require external tools or credentials, such as `gcloud`,
 provider API keys, or vendor CLI login files.
+
+The Windows app shows the same compatibility split in the dashboard
+`Compatibility` tab.
 
 ## Partial on Windows
 
@@ -25,7 +28,7 @@ sessions:
 
 ```text
 codex, claude, cursor, opencode, opencodego, alibaba, factory, manus, kimi,
-minimax, augment, kiro, ollama, windsurf, perplexity, mimo, abacus, mistral,
+minimax, augment, kiro, amp, ollama, windsurf, perplexity, mimo, abacus, mistral,
 commandcode, stepfun, grok
 ```
 

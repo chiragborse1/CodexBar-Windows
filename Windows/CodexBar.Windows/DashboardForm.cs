@@ -6,6 +6,7 @@ internal sealed class DashboardForm : Form
 {
     private readonly Label statusLabel;
     private readonly DataGridView summaryGrid;
+    private readonly DataGridView compatibilityGrid;
     private readonly RichTextBox outputBox;
     private readonly Button refreshButton;
     private readonly Button settingsButton;
@@ -103,16 +104,16 @@ internal sealed class DashboardForm : Form
             BackgroundColor = Color.White,
             BorderStyle = BorderStyle.FixedSingle,
         };
-        AddTextColumn("Provider", nameof(UsagePayloadRow.Provider), 95);
-        AddTextColumn("Account", nameof(UsagePayloadRow.Account), 150);
-        AddTextColumn("Source", nameof(UsagePayloadRow.Source), 110);
-        AddTextColumn("Primary", nameof(UsagePayloadRow.Primary), 190);
-        AddTextColumn("Secondary", nameof(UsagePayloadRow.Secondary), 190);
-        AddTextColumn("Credits", nameof(UsagePayloadRow.Credits), 90);
-        AddTextColumn("Cost", nameof(UsagePayloadRow.Cost), 110);
-        AddTextColumn("Status", nameof(UsagePayloadRow.Status), 140);
-        AddTextColumn("Updated", nameof(UsagePayloadRow.Updated), 165);
-        AddTextColumn("Error", nameof(UsagePayloadRow.Error), 260);
+        AddTextColumn(summaryGrid, "Provider", nameof(UsagePayloadRow.Provider), 95);
+        AddTextColumn(summaryGrid, "Account", nameof(UsagePayloadRow.Account), 150);
+        AddTextColumn(summaryGrid, "Source", nameof(UsagePayloadRow.Source), 110);
+        AddTextColumn(summaryGrid, "Primary", nameof(UsagePayloadRow.Primary), 190);
+        AddTextColumn(summaryGrid, "Secondary", nameof(UsagePayloadRow.Secondary), 190);
+        AddTextColumn(summaryGrid, "Credits", nameof(UsagePayloadRow.Credits), 90);
+        AddTextColumn(summaryGrid, "Cost", nameof(UsagePayloadRow.Cost), 110);
+        AddTextColumn(summaryGrid, "Status", nameof(UsagePayloadRow.Status), 140);
+        AddTextColumn(summaryGrid, "Updated", nameof(UsagePayloadRow.Updated), 165);
+        AddTextColumn(summaryGrid, "Error", nameof(UsagePayloadRow.Error), 260);
         summaryPage.Controls.Add(summaryGrid);
 
         var rawPage = new TabPage("Raw Output");
@@ -128,6 +129,30 @@ internal sealed class DashboardForm : Form
             WordWrap = false,
         };
         rawPage.Controls.Add(outputBox);
+
+        var compatibilityPage = new TabPage("Compatibility");
+        tabs.TabPages.Add(compatibilityPage);
+
+        compatibilityGrid = new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            AutoGenerateColumns = false,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            AllowUserToResizeRows = false,
+            ReadOnly = true,
+            RowHeadersVisible = false,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            MultiSelect = false,
+            BackgroundColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle,
+            DataSource = ProviderCatalog.Entries,
+        };
+        AddTextColumn(compatibilityGrid, "Provider", nameof(ProviderCatalogEntry.DisplayName), 150);
+        AddTextColumn(compatibilityGrid, "ID", nameof(ProviderCatalogEntry.Id), 100);
+        AddTextColumn(compatibilityGrid, "Windows", nameof(ProviderCatalogEntry.Support), 90);
+        AddTextColumn(compatibilityGrid, "Notes", nameof(ProviderCatalogEntry.Notes), 520);
+        compatibilityPage.Controls.Add(compatibilityGrid);
 
         Shown += async (_, _) => await RefreshUsageAsync();
     }
@@ -192,9 +217,9 @@ internal sealed class DashboardForm : Form
         }
     }
 
-    private void AddTextColumn(string header, string propertyName, int width)
+    private static void AddTextColumn(DataGridView grid, string header, string propertyName, int width)
     {
-        summaryGrid.Columns.Add(new DataGridViewTextBoxColumn
+        grid.Columns.Add(new DataGridViewTextBoxColumn
         {
             HeaderText = header,
             DataPropertyName = propertyName,

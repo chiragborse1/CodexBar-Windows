@@ -45,6 +45,7 @@ and app settings unless `-KeepSettings` is passed.
 - system tray icon and context menu
 - dashboard window
 - structured usage dashboard backed by CLI JSON
+- provider compatibility tab
 - raw CLI output view for debugging
 - usage refresh through the CLI backend
 - provider selection
