@@ -11,8 +11,8 @@ namespace CodexBar.Windows;
 
 internal sealed class UsagePopoverWindow : Wpf.Window
 {
-    private const double PopoverWidth = 470;
-    private const double PopoverHeight = 680;
+    private const double PopoverWidth = 392;
+    private const double PopoverHeight = 640;
     private WpfControls.TextBlock statusText = null!;
     private WpfControls.TextBlock footerText = null!;
     private WpfControls.Button refreshButton = null!;
@@ -36,8 +36,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         Title = AppInfo.DisplayName;
         Width = PopoverWidth;
         Height = PopoverHeight;
-        MinWidth = 420;
-        MinHeight = 560;
+        MinWidth = 360;
+        MinHeight = 520;
         ResizeMode = Wpf.ResizeMode.NoResize;
         WindowStyle = Wpf.WindowStyle.None;
         AllowsTransparency = true;
@@ -49,16 +49,16 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         var root = new WpfControls.Border
         {
-            Background = Brush("#F3F6FB"),
-            BorderBrush = Brush("#C8D2DF"),
+            Background = WpfMedia.Brushes.White,
+            BorderBrush = Brush("#D7D7D7"),
             BorderThickness = new Wpf.Thickness(1),
-            CornerRadius = new Wpf.CornerRadius(18),
+            CornerRadius = new Wpf.CornerRadius(12),
             SnapsToDevicePixels = true,
             Effect = new WpfEffects.DropShadowEffect
             {
-                BlurRadius = 34,
-                ShadowDepth = 12,
-                Opacity = 0.24,
+                BlurRadius = 28,
+                ShadowDepth = 10,
+                Opacity = 0.2,
                 Color = WpfMedia.Color.FromRgb(15, 23, 42),
             },
         };
@@ -80,14 +80,14 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         cardsStack = new WpfControls.StackPanel
         {
-            Margin = new Wpf.Thickness(16, 14, 16, 14),
+            Margin = new Wpf.Thickness(10, 6, 10, 6),
         };
         contentScroll = new WpfControls.ScrollViewer
         {
             Content = cardsStack,
             VerticalScrollBarVisibility = WpfControls.ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = WpfControls.ScrollBarVisibility.Disabled,
-            Background = Brush("#F3F6FB"),
+            Background = WpfMedia.Brushes.White,
         };
         shell.Children.Add(contentScroll);
 
@@ -195,8 +195,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         var header = new WpfControls.StackPanel
         {
-            Background = Brush("#FBFCFE"),
-            Margin = new Wpf.Thickness(18, 16, 16, 14),
+            Background = WpfMedia.Brushes.White,
+            Margin = new Wpf.Thickness(10, 8, 10, 7),
         };
 
         var titleRow = new WpfControls.Grid();
@@ -214,66 +214,57 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         titleStack.Children.Add(new WpfControls.TextBlock
         {
             Text = AppInfo.DisplayName,
-            FontSize = 19,
-            FontWeight = Wpf.FontWeights.Bold,
-            Foreground = Brush("#0F172A"),
+            FontSize = 14.5,
+            FontWeight = Wpf.FontWeights.SemiBold,
+            Foreground = Brush("#1D1D1F"),
+            TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
         });
         statusText = new WpfControls.TextBlock
         {
             Text = "Ready",
-            FontSize = 12,
-            Foreground = Brush("#64748B"),
-            Margin = new Wpf.Thickness(0, 3, 0, 0),
+            FontSize = 11,
+            Foreground = Brush("#6E6E73"),
+            Margin = new Wpf.Thickness(0, 1, 0, 0),
             TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
         };
         titleStack.Children.Add(statusText);
 
-        refreshButton = PopoverButton("Refresh");
+        var actionRow = new WpfControls.StackPanel
+        {
+            Orientation = WpfControls.Orientation.Horizontal,
+            VerticalAlignment = Wpf.VerticalAlignment.Top,
+        };
+        WpfControls.Grid.SetColumn(actionRow, 1);
+        titleRow.Children.Add(actionRow);
+
+        usageButton = HeaderButton("Usage");
+        usageButton.Click += (_, _) => ShowUsageView();
+        actionRow.Children.Add(usageButton);
+
+        refreshButton = HeaderButton("Refresh");
         refreshButton.Click += async (_, _) =>
         {
             ShowUsageView();
             await RefreshUsageAsync();
         };
-        WpfControls.Grid.SetColumn(refreshButton, 1);
-        titleRow.Children.Add(refreshButton);
+        actionRow.Children.Add(refreshButton);
 
-        var nav = new WpfControls.Grid
-        {
-            Margin = new Wpf.Thickness(0, 14, 0, 0),
-            Background = Brush("#E8EEF6"),
-        };
-        nav.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = new Wpf.GridLength(1, Wpf.GridUnitType.Star) });
-        nav.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = new Wpf.GridLength(1, Wpf.GridUnitType.Star) });
-        nav.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = new Wpf.GridLength(1, Wpf.GridUnitType.Star) });
-        header.Children.Add(new WpfControls.Border
-        {
-            Background = Brush("#E8EEF6"),
-            CornerRadius = new Wpf.CornerRadius(12),
-            Padding = new Wpf.Thickness(3),
-            Child = nav,
-        });
-
-        usageButton = NavButton("Usage");
-        usageButton.Click += (_, _) => ShowUsageView();
-        WpfControls.Grid.SetColumn(usageButton, 0);
-        nav.Children.Add(usageButton);
-
-        settingsButton = NavButton("Settings");
+        settingsButton = HeaderButton("Settings");
         settingsButton.Click += (_, _) => ShowSettingsView();
-        WpfControls.Grid.SetColumn(settingsButton, 1);
-        nav.Children.Add(settingsButton);
+        actionRow.Children.Add(settingsButton);
 
-        diagnosticsButton = NavButton("More");
+        diagnosticsButton = HeaderButton("More");
         diagnosticsButton.Click += (_, _) => ShowDiagnosticsView();
-        WpfControls.Grid.SetColumn(diagnosticsButton, 2);
-        nav.Children.Add(diagnosticsButton);
+        actionRow.Children.Add(diagnosticsButton);
 
         UpdateNavigationChrome();
 
         return new WpfControls.Border
         {
-            Background = Brush("#FBFCFE"),
-            CornerRadius = new Wpf.CornerRadius(18, 18, 0, 0),
+            Background = WpfMedia.Brushes.White,
+            BorderBrush = Brush("#E5E5E5"),
+            BorderThickness = new Wpf.Thickness(0, 0, 0, 1),
+            CornerRadius = new Wpf.CornerRadius(12, 12, 0, 0),
             Child = header,
         };
     }
@@ -282,19 +273,19 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         footerText = new WpfControls.TextBlock
         {
-            FontSize = 12,
-            Foreground = Brush("#6B7280"),
+            FontSize = 11,
+            Foreground = Brush("#6E6E73"),
             VerticalAlignment = Wpf.VerticalAlignment.Center,
             TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
         };
 
         return new WpfControls.Border
         {
-            Background = Brush("#FBFCFE"),
-            BorderBrush = Brush("#DDE5EF"),
+            Background = WpfMedia.Brushes.White,
+            BorderBrush = Brush("#E5E5E5"),
             BorderThickness = new Wpf.Thickness(0, 1, 0, 0),
-            Padding = new Wpf.Thickness(16, 0, 16, 0),
-            Height = 36,
+            Padding = new Wpf.Thickness(10, 0, 10, 0),
+            Height = 30,
             Child = footerText,
         };
     }
@@ -318,7 +309,9 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             cardsStack.Children.Add(InfoCard(
                 "No usage loaded yet",
                 "Refresh to load provider usage from the bundled CLI.",
-                Brush("#475569")));
+                Brush("#6E6E73")));
+            cardsStack.Children.Add(MenuDivider());
+            cardsStack.Children.Add(BuildUsageActionSection());
             footerText.Text = "Waiting for first refresh.";
         }
     }
@@ -349,7 +342,10 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         var scopeBox = new WpfControls.ComboBox
         {
-            MinHeight = 34,
+            MinHeight = 30,
+            FontSize = 11.5,
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#D8D8DD"),
             ItemsSource = ProviderCatalog.ProviderIds
                 .Select(id => new ProviderChoice(id, ProviderCatalog.DisplayNameFor(id)))
                 .ToArray(),
@@ -422,7 +418,10 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         var setupProviderBox = new WpfControls.ComboBox
         {
-            MinHeight = 34,
+            MinHeight = 30,
+            FontSize = 11.5,
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#D8D8DD"),
             ItemsSource = ProviderCatalog.ApiKeyEntries
                 .Select(entry => new ProviderChoice(entry.Id, entry.DisplayName))
                 .ToArray(),
@@ -430,7 +429,11 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         };
         var apiKeyBox = new WpfControls.PasswordBox
         {
-            MinHeight = 34,
+            MinHeight = 30,
+            FontSize = 11.5,
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#D8D8DD"),
+            Padding = new Wpf.Thickness(7, 4, 7, 4),
         };
         var enableBox = new WpfControls.CheckBox
         {
@@ -449,7 +452,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             if (setupProviderBox.SelectedItem is not ProviderChoice provider)
             {
                 resultText.Text = "Choose a provider first.";
-                resultText.Foreground = Brush("#64748B");
+                resultText.Foreground = Brush("#6E6E73");
                 return;
             }
 
@@ -458,7 +461,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             resultText.Text = stored
                 ? $"Stored in Windows Credential Manager. CLI runs receive {environmentKey}."
                 : $"Not stored yet. Saving here uses Windows Credential Manager, not plain JSON.";
-            resultText.Foreground = Brush("#64748B");
+            resultText.Foreground = Brush("#6E6E73");
         }
 
         setupProviderBox.SelectionChanged += (_, _) => UpdateCredentialStatus();
@@ -587,7 +590,10 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         var providerBox = new WpfControls.ComboBox
         {
-            MinHeight = 34,
+            MinHeight = 30,
+            FontSize = 11.5,
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#D8D8DD"),
             ItemsSource = ProviderCatalog.CookieEntries
                 .Select(entry => new ProviderChoice(entry.Id, entry.DisplayName))
                 .ToArray(),
@@ -595,13 +601,15 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         };
         var cookieBox = new WpfControls.TextBox
         {
-            MinHeight = 78,
-            MaxHeight = 120,
+            MinHeight = 72,
+            MaxHeight = 116,
             AcceptsReturn = true,
             TextWrapping = Wpf.TextWrapping.Wrap,
             VerticalScrollBarVisibility = WpfControls.ScrollBarVisibility.Auto,
             FontFamily = new WpfMedia.FontFamily("Consolas"),
-            FontSize = 11.5,
+            FontSize = 11,
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#D8D8DD"),
             Padding = new Wpf.Thickness(8),
         };
         var enableBox = new WpfControls.CheckBox
@@ -659,7 +667,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         {
             cookieBox.Clear();
             resultText.Text = "Manual Cookie headers are saved in the local config file.";
-            resultText.Foreground = Brush("#64748B");
+            resultText.Foreground = Brush("#6E6E73");
         };
 
         var content = new WpfControls.StackPanel();
@@ -761,13 +769,13 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             TextWrapping = Wpf.TextWrapping.Wrap,
             AcceptsReturn = true,
             VerticalScrollBarVisibility = WpfControls.ScrollBarVisibility.Auto,
-            MaxHeight = 180,
+            MaxHeight = 170,
             FontFamily = new WpfMedia.FontFamily("Consolas"),
             FontSize = 11,
-            Background = Brush("#F8FAFC"),
-            BorderBrush = Brush("#D8E0EA"),
-            Foreground = Brush("#334155"),
-            Padding = new Wpf.Thickness(10),
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#D8D8DD"),
+            Foreground = Brush("#3C3C43"),
+            Padding = new Wpf.Thickness(8),
         };
         root.Children.Add(SectionCard("Raw Output", null, rawBox));
 
@@ -801,7 +809,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
                     releaseUrl = null;
                     openButton.IsEnabled = false;
                     status.Text = "No GitHub releases found.";
-                    status.Foreground = Brush("#64748B");
+                    status.Foreground = Brush("#6E6E73");
                     return;
                 }
 
@@ -817,7 +825,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
                 else
                 {
                     status.Text = $"You are on the latest checked release: {update.TagName}.";
-                    status.Foreground = Brush("#64748B");
+                    status.Foreground = Brush("#6E6E73");
                 }
             }
             catch (Exception ex)
@@ -852,6 +860,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         if (rows.Count == 0)
         {
             cardsStack.Children.Add(CreateEmptyState(result));
+            cardsStack.Children.Add(MenuDivider());
+            cardsStack.Children.Add(BuildUsageActionSection());
             return;
         }
 
@@ -864,6 +874,98 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         {
             cardsStack.Children.Add(CreateProviderCard(row));
         }
+
+        cardsStack.Children.Add(MenuDivider());
+        cardsStack.Children.Add(BuildUsageActionSection());
+    }
+
+    private Wpf.FrameworkElement BuildUsageActionSection()
+    {
+        var stack = new WpfControls.StackPanel
+        {
+            Margin = new Wpf.Thickness(0, 2, 0, 0),
+        };
+
+        stack.Children.Add(MenuActionRow("Refresh", "Reload usage from the bundled CLI.", (Func<Task>)(async () =>
+        {
+            ShowUsageView();
+            await RefreshUsageAsync();
+        })));
+        stack.Children.Add(MenuActionRow("Settings", "Provider scope, API keys, web sessions.", () => ShowSettingsView()));
+        stack.Children.Add(MenuActionRow("More", "Diagnostics, updates, raw CLI output.", () => ShowDiagnosticsView()));
+        stack.Children.Add(MenuActionRow("Open Config File", "Edit the local provider config.", () => ConfigLocator.OpenConfigFile()));
+        stack.Children.Add(MenuActionRow("Open Config Folder", "Open the CodexBar-Windows config folder.", () => ConfigLocator.OpenConfigFolder()));
+        return stack;
+    }
+
+    private Wpf.FrameworkElement MenuActionRow(string title, string subtitle, Action action) =>
+        MenuActionRow(title, subtitle, () =>
+        {
+            action();
+            return Task.CompletedTask;
+        });
+
+    private Wpf.FrameworkElement MenuActionRow(string title, string subtitle, Func<Task> action)
+    {
+        var grid = new WpfControls.Grid
+        {
+            Margin = new Wpf.Thickness(0),
+        };
+        grid.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = new Wpf.GridLength(1, Wpf.GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = Wpf.GridLength.Auto });
+
+        var text = new WpfControls.StackPanel();
+        text.Children.Add(new WpfControls.TextBlock
+        {
+            Text = title,
+            FontSize = 12.5,
+            Foreground = Brush("#1D1D1F"),
+            TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
+        });
+        text.Children.Add(new WpfControls.TextBlock
+        {
+            Text = subtitle,
+            FontSize = 10.8,
+            Foreground = Brush("#6E6E73"),
+            Margin = new Wpf.Thickness(0, 1, 12, 0),
+            TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
+        });
+        WpfControls.Grid.SetColumn(text, 0);
+        grid.Children.Add(text);
+
+        var chevron = new WpfControls.TextBlock
+        {
+            Text = ">",
+            FontSize = 13,
+            Foreground = Brush("#8E8E93"),
+            VerticalAlignment = Wpf.VerticalAlignment.Center,
+        };
+        WpfControls.Grid.SetColumn(chevron, 1);
+        grid.Children.Add(chevron);
+
+        var button = new WpfControls.Button
+        {
+            Content = grid,
+            Background = WpfMedia.Brushes.White,
+            BorderBrush = WpfMedia.Brushes.Transparent,
+            BorderThickness = new Wpf.Thickness(0),
+            Padding = new Wpf.Thickness(6, 6, 6, 7),
+            HorizontalContentAlignment = Wpf.HorizontalAlignment.Stretch,
+            Cursor = WpfInput.Cursors.Hand,
+            Template = RoundedButtonTemplate(6),
+        };
+        button.Click += async (_, _) =>
+        {
+            try
+            {
+                await action();
+            }
+            catch (Exception ex)
+            {
+                statusText.Text = ex.Message;
+            }
+        };
+        return button;
     }
 
     private Wpf.FrameworkElement CreateProviderCard(UsagePayloadRow row)
@@ -872,72 +974,65 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var card = new WpfControls.Border
         {
             Background = WpfMedia.Brushes.White,
-            BorderBrush = Brush("#DCE4EF"),
-            BorderThickness = new Wpf.Thickness(1),
-            CornerRadius = new Wpf.CornerRadius(14),
-            Padding = new Wpf.Thickness(14),
-            Margin = new Wpf.Thickness(0, 0, 0, 12),
-            Effect = new WpfEffects.DropShadowEffect
-            {
-                BlurRadius = 18,
-                ShadowDepth = 2,
-                Opacity = 0.07,
-                Color = WpfMedia.Color.FromRgb(15, 23, 42),
-            },
+            BorderThickness = new Wpf.Thickness(0),
+            CornerRadius = new Wpf.CornerRadius(7),
+            Padding = new Wpf.Thickness(6, 4, 6, 6),
+            Margin = new Wpf.Thickness(0, 0, 0, 6),
         };
 
-        var stack = new WpfControls.StackPanel();
+        var stack = new WpfControls.StackPanel
+        {
+            Margin = new Wpf.Thickness(0),
+        };
         card.Child = stack;
 
         var header = new WpfControls.Grid();
-        header.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = Wpf.GridLength.Auto });
         header.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = new Wpf.GridLength(1, Wpf.GridUnitType.Star) });
         header.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = Wpf.GridLength.Auto });
         stack.Children.Add(header);
 
-        var icon = ProviderIcon(row, accent);
-        WpfControls.Grid.SetColumn(icon, 0);
-        header.Children.Add(icon);
-
         var titleStack = new WpfControls.StackPanel
         {
-            Margin = new Wpf.Thickness(10, 0, 10, 0),
+            Margin = new Wpf.Thickness(0, 0, 8, 0),
         };
-        WpfControls.Grid.SetColumn(titleStack, 1);
+        WpfControls.Grid.SetColumn(titleStack, 0);
         header.Children.Add(titleStack);
 
         titleStack.Children.Add(new WpfControls.TextBlock
         {
             Text = row.DisplayName,
-            FontSize = 14.5,
+            FontSize = 13.5,
             FontWeight = Wpf.FontWeights.SemiBold,
-            Foreground = Brush("#0F172A"),
+            Foreground = Brush("#1D1D1F"),
             TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
         });
 
         var subtitle = SubtitleText(row);
-        if (!string.IsNullOrWhiteSpace(subtitle))
+        titleStack.Children.Add(new WpfControls.TextBlock
         {
-            titleStack.Children.Add(new WpfControls.TextBlock
-            {
-                Text = subtitle,
-                FontSize = 11.5,
-                Foreground = Brush("#6B7280"),
-                Margin = new Wpf.Thickness(0, 1, 0, 0),
-                TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
-            });
-        }
+            Text = string.IsNullOrWhiteSpace(subtitle) ? StatusLabel(row) : subtitle,
+            FontSize = 11,
+            Foreground = string.IsNullOrWhiteSpace(row.Error) ? Brush("#6E6E73") : ErrorBrush(row),
+            Margin = new Wpf.Thickness(0, 1, 0, 0),
+            TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
+        });
 
         var percent = row.Metrics.FirstOrDefault()?.RemainingPercent;
-        var pill = StatusPill(
-            percent.HasValue ? $"{percent.Value:0}% left" : StatusLabel(row),
-            percent.HasValue ? accent : StatusForeground(row),
-            percent.HasValue ? Tint(accent, 0.92) : StatusBackground(row));
-        WpfControls.Grid.SetColumn(pill, 2);
-        header.Children.Add(pill);
+        var trailing = new WpfControls.TextBlock
+        {
+            Text = percent.HasValue ? $"{percent.Value:0}% left" : StatusLabel(row),
+            FontSize = 11.5,
+            Foreground = percent.HasValue ? accent : StatusForeground(row),
+            VerticalAlignment = Wpf.VerticalAlignment.Top,
+            TextAlignment = Wpf.TextAlignment.Right,
+            TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
+        };
+        WpfControls.Grid.SetColumn(trailing, 1);
+        header.Children.Add(trailing);
 
         if (row.Metrics.Count > 0)
         {
+            stack.Children.Add(MenuDivider(new Wpf.Thickness(0, 7, 0, 0)));
             foreach (var metric in row.Metrics.Take(4))
             {
                 stack.Children.Add(CreateMetric(metric, accent));
@@ -947,26 +1042,27 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         {
             stack.Children.Add(MessageLine(
                 string.IsNullOrWhiteSpace(row.Error) ? "Limits not available for this provider yet." : FriendlyError(row),
-                string.IsNullOrWhiteSpace(row.Error) ? Brush("#6B7280") : ErrorBrush(row),
-                new Wpf.Thickness(0, 12, 0, 0)));
+                string.IsNullOrWhiteSpace(row.Error) ? Brush("#6E6E73") : ErrorBrush(row),
+                new Wpf.Thickness(0, 7, 0, 0)));
         }
 
         if (!string.IsNullOrWhiteSpace(row.Credits) || !string.IsNullOrWhiteSpace(row.Cost))
         {
+            stack.Children.Add(MenuDivider(new Wpf.Thickness(0, 8, 0, 0)));
             stack.Children.Add(MessageLine(
                 SmallLine("Credits", row.Credits, "Cost", row.Cost),
-                Brush("#374151"),
-                new Wpf.Thickness(0, 10, 0, 0)));
+                Brush("#3C3C43"),
+                new Wpf.Thickness(0, 7, 0, 0)));
         }
 
         if (!string.IsNullOrWhiteSpace(row.Status))
         {
-            stack.Children.Add(MessageLine(row.Status, Brush("#6B7280"), new Wpf.Thickness(0, 8, 0, 0)));
+            stack.Children.Add(MessageLine(row.Status, Brush("#6E6E73"), new Wpf.Thickness(0, 6, 0, 0)));
         }
 
         if (!string.IsNullOrWhiteSpace(row.Error) && row.Metrics.Count > 0)
         {
-            stack.Children.Add(MessageLine(FriendlyError(row), ErrorBrush(row), new Wpf.Thickness(0, 8, 0, 0)));
+            stack.Children.Add(MessageLine(FriendlyError(row), ErrorBrush(row), new Wpf.Thickness(0, 6, 0, 0)));
         }
 
         return card;
@@ -976,12 +1072,12 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         var card = new WpfControls.Border
         {
-            Background = Brush("#EEF6FF"),
-            BorderBrush = Brush("#B7D8FF"),
+            Background = Brush("#F5F7FA"),
+            BorderBrush = Brush("#E5E5EA"),
             BorderThickness = new Wpf.Thickness(1),
-            CornerRadius = new Wpf.CornerRadius(14),
-            Padding = new Wpf.Thickness(14),
-            Margin = new Wpf.Thickness(0, 0, 0, 12),
+            CornerRadius = new Wpf.CornerRadius(8),
+            Padding = new Wpf.Thickness(10, 9, 10, 10),
+            Margin = new Wpf.Thickness(0, 0, 0, 8),
         };
 
         var grid = new WpfControls.Grid();
@@ -998,20 +1094,20 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         textStack.Children.Add(new WpfControls.TextBlock
         {
             Text = "Set up a Windows provider",
-            FontSize = 13.5,
+            FontSize = 12.5,
             FontWeight = Wpf.FontWeights.SemiBold,
-            Foreground = Brush("#153E75"),
+            Foreground = Brush("#1D1D1F"),
         });
         textStack.Children.Add(new WpfControls.TextBlock
         {
             Text = "Save an API key in Settings to replace these setup and compatibility messages with live usage.",
-            FontSize = 11.5,
-            Foreground = Brush("#34547A"),
+            FontSize = 11,
+            Foreground = Brush("#6E6E73"),
             TextWrapping = Wpf.TextWrapping.Wrap,
             Margin = new Wpf.Thickness(0, 3, 0, 0),
         });
 
-        var button = PopoverButton("Open Settings");
+        var button = HeaderButton("Settings");
         button.Margin = new Wpf.Thickness(0);
         button.VerticalAlignment = Wpf.VerticalAlignment.Center;
         button.Click += (_, _) => ShowSettingsView();
@@ -1025,7 +1121,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         var stack = new WpfControls.StackPanel
         {
-            Margin = new Wpf.Thickness(0, 12, 0, 0),
+            Margin = new Wpf.Thickness(0, 9, 0, 0),
         };
 
         var header = new WpfControls.Grid();
@@ -1036,8 +1132,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var title = new WpfControls.TextBlock
         {
             Text = metric.Title,
-            FontSize = 12.5,
-            Foreground = Brush("#374151"),
+            FontSize = 12,
+            Foreground = Brush("#3C3C43"),
             TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
         };
         WpfControls.Grid.SetColumn(title, 0);
@@ -1046,8 +1142,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var remaining = new WpfControls.TextBlock
         {
             Text = $"{metric.RemainingPercent:0}% left",
-            FontSize = 12,
-            Foreground = Brush("#6B7280"),
+            FontSize = 11.5,
+            Foreground = Brush("#6E6E73"),
         };
         WpfControls.Grid.SetColumn(remaining, 1);
         header.Children.Add(remaining);
@@ -1059,10 +1155,10 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             stack.Children.Add(new WpfControls.TextBlock
             {
                 Text = metric.Reset,
-                FontSize = 11.5,
-                Foreground = Brush("#6B7280"),
+                FontSize = 11,
+                Foreground = Brush("#6E6E73"),
                 TextWrapping = Wpf.TextWrapping.Wrap,
-                Margin = new Wpf.Thickness(0, 4, 0, 0),
+                Margin = new Wpf.Thickness(0, 3, 0, 0),
             });
         }
 
@@ -1079,14 +1175,14 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         return new WpfControls.Border
         {
-            Background = WpfMedia.Brushes.White,
-            BorderBrush = Brush("#E1E5EC"),
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#E5E5EA"),
             BorderThickness = new Wpf.Thickness(1),
             CornerRadius = new Wpf.CornerRadius(8),
-            Padding = new Wpf.Thickness(14),
+            Padding = new Wpf.Thickness(10),
             Child = MessageLine(
                 text,
-                result.Succeeded ? Brush("#6B7280") : Brush("#B42318"),
+                result.Succeeded ? Brush("#6E6E73") : Brush("#B42318"),
                 new Wpf.Thickness(0)),
         };
     }
@@ -1094,7 +1190,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     private static WpfControls.StackPanel ViewStack() =>
         new()
         {
-            Margin = new Wpf.Thickness(16, 14, 16, 14),
+            Margin = new Wpf.Thickness(10, 6, 10, 6),
         };
 
     private static Wpf.FrameworkElement SectionCard(string title, string? subtitle, Wpf.FrameworkElement content)
@@ -1103,42 +1199,35 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         stack.Children.Add(new WpfControls.TextBlock
         {
             Text = title,
-            FontSize = 14,
-            FontWeight = Wpf.FontWeights.Bold,
-            Foreground = Brush("#0F172A"),
+            FontSize = 12.5,
+            FontWeight = Wpf.FontWeights.SemiBold,
+            Foreground = Brush("#1D1D1F"),
         });
         if (!string.IsNullOrWhiteSpace(subtitle))
         {
             stack.Children.Add(new WpfControls.TextBlock
             {
                 Text = subtitle,
-                FontSize = 11.5,
-                Foreground = Brush("#64748B"),
+                FontSize = 11,
+                Foreground = Brush("#6E6E73"),
                 TextWrapping = Wpf.TextWrapping.Wrap,
-                Margin = new Wpf.Thickness(0, 3, 0, 12),
+                Margin = new Wpf.Thickness(0, 2, 0, 8),
             });
         }
         else
         {
-            stack.Children.Add(new WpfControls.Border { Height = 10 });
+            stack.Children.Add(new WpfControls.Border { Height = 7 });
         }
 
         stack.Children.Add(content);
         return new WpfControls.Border
         {
             Background = WpfMedia.Brushes.White,
-            BorderBrush = Brush("#DCE4EF"),
-            BorderThickness = new Wpf.Thickness(1),
-            CornerRadius = new Wpf.CornerRadius(14),
-            Padding = new Wpf.Thickness(14),
-            Margin = new Wpf.Thickness(0, 0, 0, 12),
-            Effect = new WpfEffects.DropShadowEffect
-            {
-                BlurRadius = 16,
-                ShadowDepth = 2,
-                Opacity = 0.07,
-                Color = WpfMedia.Color.FromRgb(15, 23, 42),
-            },
+            BorderBrush = Brush("#ECECEC"),
+            BorderThickness = new Wpf.Thickness(0, 0, 0, 1),
+            CornerRadius = new Wpf.CornerRadius(0),
+            Padding = new Wpf.Thickness(6, 8, 6, 10),
+            Margin = new Wpf.Thickness(0, 0, 0, 4),
             Child = stack,
         };
     }
@@ -1149,35 +1238,46 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         stack.Children.Add(new WpfControls.TextBlock
         {
             Text = title,
-            FontSize = 14,
-            FontWeight = Wpf.FontWeights.Bold,
-            Foreground = Brush("#0F172A"),
+            FontSize = 12.5,
+            FontWeight = Wpf.FontWeights.SemiBold,
+            Foreground = Brush("#1D1D1F"),
         });
         stack.Children.Add(new WpfControls.TextBlock
         {
             Text = body,
-            FontSize = 12,
+            FontSize = 11,
             Foreground = foreground,
             TextWrapping = Wpf.TextWrapping.Wrap,
-            Margin = new Wpf.Thickness(0, 5, 0, 0),
+            Margin = new Wpf.Thickness(0, 3, 0, 0),
         });
 
         return new WpfControls.Border
         {
-            Background = WpfMedia.Brushes.White,
-            BorderBrush = Brush("#DCE4EF"),
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#E5E5EA"),
             BorderThickness = new Wpf.Thickness(1),
-            CornerRadius = new Wpf.CornerRadius(14),
-            Padding = new Wpf.Thickness(14),
+            CornerRadius = new Wpf.CornerRadius(8),
+            Padding = new Wpf.Thickness(10),
             Child = stack,
         };
     }
+
+    private static Wpf.FrameworkElement MenuDivider() =>
+        MenuDivider(new Wpf.Thickness(0, 2, 0, 6));
+
+    private static Wpf.FrameworkElement MenuDivider(Wpf.Thickness margin) =>
+        new WpfControls.Border
+        {
+            Height = 1,
+            Background = Brush("#ECECEC"),
+            Margin = margin,
+        };
 
     private static Wpf.FrameworkElement ProviderCompatibilityRow(ProviderCatalogEntry provider)
     {
         var grid = new WpfControls.Grid
         {
-            Margin = new Wpf.Thickness(0, 0, 0, 9),
+            Margin = new Wpf.Thickness(0, 0, 0, 7),
         };
         grid.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = new Wpf.GridLength(1, Wpf.GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = Wpf.GridLength.Auto });
@@ -1186,15 +1286,15 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         text.Children.Add(new WpfControls.TextBlock
         {
             Text = provider.DisplayName,
-            FontSize = 12.5,
+            FontSize = 12,
             FontWeight = Wpf.FontWeights.SemiBold,
-            Foreground = Brush("#1E293B"),
+            Foreground = Brush("#1D1D1F"),
         });
         text.Children.Add(new WpfControls.TextBlock
         {
             Text = $"{provider.Id} - {provider.Notes}",
-            FontSize = 11,
-            Foreground = Brush("#64748B"),
+            FontSize = 10.8,
+            Foreground = Brush("#6E6E73"),
             TextWrapping = Wpf.TextWrapping.Wrap,
             Margin = new Wpf.Thickness(0, 2, 8, 0),
         });
@@ -1205,7 +1305,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         {
             "Ready" => Brush("#15803D"),
             "Partial" => Brush("#8A5A00"),
-            _ => Brush("#475569"),
+            _ => Brush("#6E6E73"),
         };
         var background = provider.Support switch
         {
@@ -1223,18 +1323,18 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         new()
         {
             Text = text,
-            FontSize = 12,
+            FontSize = 11.5,
             FontWeight = Wpf.FontWeights.SemiBold,
-            Foreground = Brush("#334155"),
-            Margin = new Wpf.Thickness(0, 10, 0, 5),
+            Foreground = Brush("#3C3C43"),
+            Margin = new Wpf.Thickness(0, 9, 0, 4),
         };
 
     private static WpfControls.TextBlock Caption(string text) =>
         new()
         {
             Text = text,
-            FontSize = 11.5,
-            Foreground = Brush("#64748B"),
+            FontSize = 11,
+            Foreground = Brush("#6E6E73"),
             TextWrapping = Wpf.TextWrapping.Wrap,
             VerticalAlignment = Wpf.VerticalAlignment.Center,
         };
@@ -1259,11 +1359,11 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var row = new WpfControls.StackPanel
         {
             Orientation = WpfControls.Orientation.Horizontal,
-            Margin = new Wpf.Thickness(0, 12, 0, 0),
+            Margin = new Wpf.Thickness(0, 9, 0, 0),
         };
         foreach (var control in controls)
         {
-            control.Margin = new Wpf.Thickness(0, 0, 8, 0);
+            control.Margin = new Wpf.Thickness(0, 0, 6, 0);
             row.Children.Add(control);
         }
 
@@ -1275,31 +1375,42 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var button = new WpfControls.Button
         {
             Content = text,
-            FontSize = 12,
-            Foreground = Brush("#1F2937"),
-            Background = WpfMedia.Brushes.White,
-            BorderBrush = Brush("#C9D1DC"),
+            FontSize = 11.5,
+            Foreground = Brush("#1D1D1F"),
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#DADADA"),
             BorderThickness = new Wpf.Thickness(1),
-            Padding = new Wpf.Thickness(11, 6, 11, 7),
-            Margin = new Wpf.Thickness(6, 0, 0, 0),
+            Padding = new Wpf.Thickness(9, 4, 9, 5),
+            Margin = new Wpf.Thickness(5, 0, 0, 0),
             MinWidth = 0,
             Cursor = WpfInput.Cursors.Hand,
-            Template = RoundedButtonTemplate(9),
+            Template = RoundedButtonTemplate(6),
         };
         return button;
     }
 
+    private static WpfControls.Button HeaderButton(string text)
+    {
+        var button = PopoverButton(text);
+        button.FontSize = 11;
+        button.Padding = new Wpf.Thickness(8, 3, 8, 4);
+        button.Background = WpfMedia.Brushes.White;
+        button.BorderBrush = Brush("#D8D8DD");
+        button.Template = RoundedButtonTemplate(5);
+        return button;
+    }
+
     private static WpfControls.Button PrimaryButton(string text) =>
-        StyledButton(text, Brush("#2563EB"), WpfMedia.Brushes.White, Brush("#2563EB"));
+        StyledButton(text, Brush("#1D1D1F"), WpfMedia.Brushes.White, Brush("#1D1D1F"));
 
     private static WpfControls.Button SecondaryButton(string text) =>
-        StyledButton(text, WpfMedia.Brushes.White, Brush("#1E293B"), Brush("#CBD5E1"));
+        StyledButton(text, WpfMedia.Brushes.White, Brush("#1D1D1F"), Brush("#D8D8DD"));
 
     private static WpfControls.Button NavButton(string text)
     {
-        var button = StyledButton(text, Brush("#E8EEF6"), Brush("#475569"), Brush("#E8EEF6"));
+        var button = StyledButton(text, WpfMedia.Brushes.White, Brush("#6E6E73"), WpfMedia.Brushes.White);
         button.Margin = new Wpf.Thickness(0);
-        button.Padding = new Wpf.Thickness(8, 7, 8, 8);
+        button.Padding = new Wpf.Thickness(8, 5, 8, 5);
         return button;
     }
 
@@ -1312,16 +1423,16 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         return new WpfControls.Button
         {
             Content = text,
-            FontSize = 12,
+            FontSize = 11.5,
             FontWeight = Wpf.FontWeights.SemiBold,
             Foreground = foreground,
             Background = background,
             BorderBrush = border,
             BorderThickness = new Wpf.Thickness(1),
-            Padding = new Wpf.Thickness(11, 6, 11, 7),
+            Padding = new Wpf.Thickness(9, 5, 9, 6),
             MinWidth = 0,
             Cursor = WpfInput.Cursors.Hand,
-            Template = RoundedButtonTemplate(9),
+            Template = RoundedButtonTemplate(6),
         };
     }
 
@@ -1334,9 +1445,12 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
     private static void UpdateNavButton(WpfControls.Button button, bool selected)
     {
-        button.Background = selected ? WpfMedia.Brushes.White : Brush("#E8EEF6");
-        button.Foreground = selected ? Brush("#0F172A") : Brush("#64748B");
-        button.BorderBrush = selected ? Brush("#D6DFEA") : Brush("#E8EEF6");
+        button.Visibility = selected && button.Content?.ToString() == "Usage"
+            ? Wpf.Visibility.Collapsed
+            : Wpf.Visibility.Visible;
+        button.Background = selected ? Brush("#E9E9EC") : WpfMedia.Brushes.White;
+        button.Foreground = selected ? Brush("#1D1D1F") : Brush("#3C3C43");
+        button.BorderBrush = selected ? Brush("#CFCFD5") : Brush("#D8D8DD");
     }
 
     private static WpfControls.ControlTemplate RoundedButtonTemplate(double radius)
@@ -1441,12 +1555,12 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         {
             Background = background,
             CornerRadius = new Wpf.CornerRadius(999),
-            Padding = new Wpf.Thickness(8, 3, 8, 4),
+            Padding = new Wpf.Thickness(7, 2, 7, 3),
             VerticalAlignment = Wpf.VerticalAlignment.Top,
             Child = new WpfControls.TextBlock
             {
                 Text = text,
-                FontSize = 11.5,
+                FontSize = 10.8,
                 FontWeight = Wpf.FontWeights.SemiBold,
                 Foreground = foreground,
             },
@@ -1457,19 +1571,19 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var clamped = Math.Clamp(usedPercent, 0, 100);
         var grid = new WpfControls.Grid
         {
-            Height = 9,
-            Margin = new Wpf.Thickness(0, 6, 0, 0),
+            Height = 5,
+            Margin = new Wpf.Thickness(0, 5, 0, 0),
             ClipToBounds = true,
         };
         var track = new WpfControls.Border
         {
-            Background = Brush("#E5E7EB"),
-            CornerRadius = new Wpf.CornerRadius(4),
+            Background = Brush("#E5E5EA"),
+            CornerRadius = new Wpf.CornerRadius(2.5),
         };
         var fill = new WpfControls.Border
         {
             Background = accent,
-            CornerRadius = new Wpf.CornerRadius(4),
+            CornerRadius = new Wpf.CornerRadius(2.5),
             HorizontalAlignment = Wpf.HorizontalAlignment.Left,
         };
         grid.Children.Add(track);
@@ -1485,7 +1599,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         new()
         {
             Text = text,
-            FontSize = 11.5,
+            FontSize = 11,
             Foreground = brush,
             TextWrapping = Wpf.TextWrapping.Wrap,
             Margin = margin,
@@ -1565,7 +1679,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     }
 
     private static WpfMedia.Brush ErrorBrush(UsagePayloadRow row) =>
-        NeedsApiKeySetup(row) || IsWindowsPendingError(row.Error) ? Brush("#6B7280") : Brush("#B42318");
+        NeedsApiKeySetup(row) || IsWindowsPendingError(row.Error) ? Brush("#6E6E73") : Brush("#B42318");
 
     private static string FriendlyError(UsagePayloadRow row)
     {
