@@ -116,6 +116,7 @@ internal sealed class CliRunner
             WorkingDirectory = Path.GetDirectoryName(executable) ?? AppContext.BaseDirectory,
         };
         startInfo.Environment["CODEXBAR_CONFIG"] = ConfigLocator.ConfigPath;
+        ProviderSecretEnvironment.ApplyStoredCredentials(startInfo.Environment);
 
         foreach (var argument in arguments)
         {

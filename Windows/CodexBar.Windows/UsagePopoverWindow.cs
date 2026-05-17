@@ -437,10 +437,30 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             IsChecked = true,
             Margin = new Wpf.Thickness(0, 8, 0, 0),
         };
-        var resultText = Caption("API keys are stored in the local CodexBar-Windows config.");
+        var resultText = Caption("");
         var saveKeyButton = PrimaryButton("Save API Key");
         var enableButton = SecondaryButton("Enable");
         var disableButton = SecondaryButton("Disable");
+        var forgetButton = SecondaryButton("Forget Key");
+
+        void UpdateCredentialStatus()
+        {
+            if (setupProviderBox.SelectedItem is not ProviderChoice provider)
+            {
+                resultText.Text = "Choose a provider first.";
+                resultText.Foreground = Brush("#64748B");
+                return;
+            }
+
+            var environmentKey = ProviderSecretEnvironment.PrimaryEnvironmentKeyFor(provider.Id);
+            var stored = WindowsCredentialStore.HasApiKey(provider.Id);
+            resultText.Text = stored
+                ? $"Stored in Windows Credential Manager. CLI runs receive {environmentKey}."
+                : $"Not stored yet. Saving here uses Windows Credential Manager, not plain JSON.";
+            resultText.Foreground = Brush("#64748B");
+        }
+
+        setupProviderBox.SelectionChanged += (_, _) => UpdateCredentialStatus();
 
         saveKeyButton.Click += async (_, _) =>
         {
@@ -457,37 +477,59 @@ internal sealed class UsagePopoverWindow : Wpf.Window
                 return;
             }
 
-            SetButtonsEnabled(false, saveKeyButton, enableButton, disableButton);
-            SetResult(resultText, "Saving...", isError: false);
+            SetButtonsEnabled(false, saveKeyButton, enableButton, disableButton, forgetButton);
+            SetResult(resultText, "Saving to Windows Credential Manager...", isError: false);
             try
             {
-                var result = await cliRunner.SetApiKeyAsync(
-                    provider.Id,
-                    apiKey,
-                    enableBox.IsChecked == true,
-                    CancellationToken.None);
-                if (result.Succeeded)
+                WindowsCredentialStore.WriteApiKey(provider.Id, apiKey);
+
+                if (enableBox.IsChecked == true)
                 {
-                    apiKeyBox.Clear();
-                    settings.Provider = provider.Id;
-                    SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
-                    SetResult(resultText, $"Saved and focused {provider.DisplayName}.", isError: false);
+                    var result = await cliRunner.SetProviderEnabledAsync(provider.Id, enabled: true, CancellationToken.None);
+                    if (!result.Succeeded)
+                    {
+                        SetResult(resultText, $"Saved key, but enabling failed: {ShortResultMessage(result)}", isError: true);
+                        return;
+                    }
                 }
-                else
-                {
-                    SetResult(resultText, ShortResultMessage(result), isError: true);
-                }
+
+                apiKeyBox.Clear();
+                settings.Provider = provider.Id;
+                SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+                SetResult(resultText, $"Saved securely and focused {provider.DisplayName}.", isError: false);
+            }
+            catch (Exception ex)
+            {
+                SetResult(resultText, ex.Message, isError: true);
             }
             finally
             {
-                SetButtonsEnabled(true, saveKeyButton, enableButton, disableButton);
+                SetButtonsEnabled(true, saveKeyButton, enableButton, disableButton, forgetButton);
             }
         };
 
         enableButton.Click += async (_, _) =>
-            await ChangeProviderEnabledAsync(setupProviderBox, resultText, enabled: true, saveKeyButton, enableButton, disableButton);
+            await ChangeProviderEnabledAsync(setupProviderBox, resultText, enabled: true, saveKeyButton, enableButton, disableButton, forgetButton);
         disableButton.Click += async (_, _) =>
-            await ChangeProviderEnabledAsync(setupProviderBox, resultText, enabled: false, saveKeyButton, enableButton, disableButton);
+            await ChangeProviderEnabledAsync(setupProviderBox, resultText, enabled: false, saveKeyButton, enableButton, disableButton, forgetButton);
+        forgetButton.Click += (_, _) =>
+        {
+            if (setupProviderBox.SelectedItem is not ProviderChoice provider)
+            {
+                SetResult(resultText, "Choose a provider first.", isError: true);
+                return;
+            }
+
+            try
+            {
+                WindowsCredentialStore.DeleteApiKey(provider.Id);
+                SetResult(resultText, $"Removed stored key for {provider.DisplayName}.", isError: false);
+            }
+            catch (Exception ex)
+            {
+                SetResult(resultText, ex.Message, isError: true);
+            }
+        };
 
         var content = new WpfControls.StackPanel();
         content.Children.Add(FieldLabel("Provider"));
@@ -496,11 +538,13 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         content.Children.Add(apiKeyBox);
         content.Children.Add(enableBox);
         content.Children.Add(ActionRow(saveKeyButton, enableButton, disableButton));
+        content.Children.Add(ActionRow(forgetButton));
         content.Children.Add(resultText);
+        UpdateCredentialStatus();
 
         return SectionCard(
             "Provider Setup",
-            "Add a token without editing JSON or opening another window.",
+            "Add a token without editing JSON, opening another window, or storing secrets in plain text.",
             content);
     }
 

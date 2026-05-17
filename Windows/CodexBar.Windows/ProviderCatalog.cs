@@ -77,6 +77,7 @@ internal static class ProviderCatalog
         "codebuff",
         "crof",
         "doubao",
+        "deepseek",
     ];
 
     public static ProviderCatalogEntry[] ApiKeyEntries => ApiKeyProviderIds
