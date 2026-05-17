@@ -37,6 +37,12 @@ Windows release binaries are published from this repository:
 Download the latest `CodexBar-Windows-<version>-windows-x86_64.zip` release
 asset, extract it, and run `CodexBar-Windows.exe`.
 
+To install it into your user profile and create a Start Menu shortcut:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch
+```
+
 Manual workflow artifacts can also be downloaded from the `Release` or `CI`
 GitHub Actions workflow. The Windows artifact is named
 `codexbar-windows-x86_64`; extracting it once gives you `CodexBar-Windows.exe`

@@ -20,6 +20,20 @@ pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
 The package script copies `CodexBarCLI.exe` and Swift runtime DLLs beside
 `CodexBar-Windows.exe`. The release workflow runs the same script.
 
+## Install Script
+
+The packaged folder includes:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch
+powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
+```
+
+`install.ps1` copies the extracted app to
+`%LOCALAPPDATA%\Programs\CodexBar-Windows` and creates a Start Menu shortcut.
+`uninstall.ps1` removes the shortcut, install folder, launch-at-sign-in entry,
+and app settings unless `-KeepSettings` is passed.
+
 ## Runtime Files
 
 - App settings: `%APPDATA%\CodexBar-Windows\windows-app-settings.json`
@@ -46,4 +60,4 @@ Tagged releases upload `CodexBar-Windows-<tag>-windows-x86_64.zip` directly to
 the GitHub Release. Manual workflow artifacts are named
 `codexbar-windows-x86_64`; extracting that artifact once gives the runnable app
 folder with the app, CLI backend, Swift runtime DLLs, publish files, `VERSION`,
-and `README_RUN.txt`.
+`README_RUN.txt`, `install.ps1`, and `uninstall.ps1`.

@@ -6,6 +6,12 @@ This folder contains the Windows tray app and the CLI backend.
 Run:
   CodexBar-Windows.exe
 
+Optional install:
+  powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch
+
+Uninstall after using install.ps1:
+  powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
+
 The app places an icon in the Windows system tray. Open the dashboard from the
 tray icon or by double-clicking it.
 

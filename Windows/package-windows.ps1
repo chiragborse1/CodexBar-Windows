@@ -125,6 +125,8 @@ Get-ChildItem -Path $binDir -File |
 
 Copy-SwiftRuntimeDlls $packageDir
 Copy-Item (Join-Path $repoRoot "Windows\CodexBar.Windows\README_RUN.txt") (Join-Path $packageDir "README_RUN.txt") -Force
+Copy-Item (Join-Path $repoRoot "Windows\install.ps1") (Join-Path $packageDir "install.ps1") -Force
+Copy-Item (Join-Path $repoRoot "Windows\uninstall.ps1") (Join-Path $packageDir "uninstall.ps1") -Force
 Set-Content -Path (Join-Path $packageDir "VERSION") -Value $version -NoNewline
 
 & (Join-Path $packageDir "CodexBar-Windows.exe") --smoke-test

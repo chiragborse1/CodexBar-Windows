@@ -26,6 +26,8 @@ artifact once gives:
 CodexBar-Windows.exe
 CodexBarCLI.exe
 README_RUN.txt
+install.ps1
+uninstall.ps1
 VERSION
 ...
 ```
@@ -46,6 +48,8 @@ Expand-Archive .\codexbar-windows-x86_64.zip -DestinationPath .\app -Force
 cd .\app
 .\CodexBar-Windows.exe --smoke-test
 .\CodexBarCLI.exe --version
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
 ```
 
 ## Tagged Release
