@@ -25,8 +25,11 @@ Bring a complete CodexBar-Windows experience to Windows users:
   `README_RUN.txt`.
 - The tray popover parses CLI JSON into provider cards and keeps Settings and
   More diagnostics inside the tray surface.
-- Settings can save API keys for config-backed providers and focus the popover
-  on the configured provider.
+- Settings saves API keys to Windows Credential Manager, supports manual Cookie
+  headers for web-session providers, and focuses the popover on the configured
+  provider.
+- More includes diagnostics, provider compatibility, config actions, and a
+  GitHub release update check.
 - Browser-cookie extraction is stubbed on Windows.
 - PTY-backed interactive provider helpers are stubbed on Windows.
 - The localhost `serve` command is stubbed on Windows while Foundation
@@ -46,9 +49,11 @@ The tray app provides:
 - compact CodexBar-style usage popover
 - embedded More view with refresh/copy/config actions and provider
   compatibility
+- embedded update checker for GitHub releases
 - scheduled refresh loop
 - configurable provider target
-- embedded provider API-key setup for CLI-supported config secrets
+- embedded provider API-key setup backed by Windows Credential Manager
+- embedded manual Cookie header setup for web-session providers
 - CLI path override
 - launch-at-sign-in toggle through the current-user Run registry key
 - app settings in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`
@@ -60,7 +65,7 @@ The tray app provides:
   secrets.
 - JSON and text CLI output.
 - `config validate`, `config dump`, `config providers`, provider enable/disable,
-  and config-backed API key storage.
+  config-backed manual Cookie headers, and provider setup from the tray app.
 - Local cost commands where their scanner inputs are available.
 - Native tray launch and popover refresh through the bundled CLI.
 
@@ -68,16 +73,17 @@ The tray app provides:
 
 - OpenAI/Claude web dashboard scraping needs Windows browser-cookie support.
 - Codex/Claude interactive CLI sessions need ConPTY-backed PTY support.
-- Windows Credential Manager should replace Keychain-only secret paths.
-- MSIX/WiX installer and auto-update channel are not implemented yet.
+- Native browser-cookie extraction for Edge, Chrome, Firefox, and Chromium is
+  not implemented yet; manual Cookie headers are the current bridge.
+- MSIX/WiX installer packaging, code signing, and automatic update install are
+  not implemented yet.
 
 ## Next Steps
 
-1. Add Windows Credential Manager storage for secrets.
-2. Add Edge/Chrome/Firefox cookie import.
-3. Add ConPTY support for interactive provider CLIs.
-4. Add `.msix` or WiX installer packaging.
-5. Add signed release builds and an update channel.
+1. Add Edge/Chrome/Firefox cookie import.
+2. Add ConPTY support for interactive provider CLIs.
+3. Add `.msix` or WiX installer packaging.
+4. Add signed release builds and automatic update install.
 
 ## Repo Policy
 

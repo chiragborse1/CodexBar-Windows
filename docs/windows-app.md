@@ -51,9 +51,11 @@ powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
 ```
 
 `install.ps1` copies the extracted app to
-`%LOCALAPPDATA%\Programs\CodexBar-Windows` and creates a Start Menu shortcut.
-`uninstall.ps1` removes the shortcut, install folder, launch-at-sign-in entry,
-and app settings unless `-KeepSettings` is passed.
+`%LOCALAPPDATA%\Programs\CodexBar-Windows`, creates Start Menu shortcuts,
+registers the app in Windows Apps & Features, and can create a desktop shortcut
+with `-DesktopShortcut`. `uninstall.ps1` removes shortcuts, uninstall
+registration, install folder, launch-at-sign-in entry, and app settings unless
+`-KeepSettings` is passed.
 
 ## Runtime Files
 
@@ -69,10 +71,11 @@ and app settings unless `-KeepSettings` is passed.
   credits, cost, status, and errors
 - embedded More view with raw CLI output, config actions, and provider
   compatibility
+- in-popover GitHub release update check
 - usage refresh through the CLI backend
 - provider selection with an `enabled` scope that mirrors config
-- embedded API-key setup controls for providers supported by the CLI config
-  store
+- embedded API-key setup controls backed by Windows Credential Manager
+- embedded manual Cookie header setup for web-session providers
 - CLI path override
 - embedded settings for refresh scope, refresh interval, startup behavior, and
   provider setup
@@ -84,9 +87,15 @@ and app settings unless `-KeepSettings` is passed.
 ## Provider Setup
 
 Open `Settings` inside the tray popover, choose a provider, paste its API key,
-and click `Save API Key`. The setting is written to
-`%APPDATA%\CodexBar-Windows\config.json` through `CodexBarCLI.exe config
-set-api-key --stdin`, so the same config works from the app and CLI.
+and click `Save API Key`. The key is written to Windows Credential Manager and
+the tray app injects the provider-specific environment variable into bundled
+CLI runs. The provider toggle is still written through `CodexBarCLI.exe config
+enable`.
+
+For web-session providers, use `Settings` > `Manual Web Session` to save a
+manual Cookie header through `CodexBarCLI.exe config set-cookie --stdin`. This
+is the Windows bridge until native Edge/Chrome/Firefox cookie import is
+implemented.
 
 The tray app defaults to the `enabled` provider scope. When a key is saved from
 Settings, the scope moves to that provider so the popover shows the configured

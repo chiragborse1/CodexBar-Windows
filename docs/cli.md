@@ -43,6 +43,7 @@ Set `CODEXBAR_CONFIG` to use another config file for tests or scripts.
 .\CodexBarCLI.exe config enable --provider openrouter
 .\CodexBarCLI.exe config disable --provider cursor
 .\CodexBarCLI.exe config set-api-key --provider openrouter --stdin
+.\CodexBarCLI.exe config set-cookie --provider cursor --stdin
 ```
 
 ## Useful Flags

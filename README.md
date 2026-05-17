@@ -15,8 +15,12 @@ Current build status:
 - Native Windows tray app opens a WPF CodexBar-style tray popover.
 - Usage, Settings, and More now stay inside the popover instead of opening
   classic secondary windows.
-- Settings can save API keys for Windows-ready providers through the bundled
-  CLI config command.
+- Settings saves API keys for Windows-ready providers in Windows Credential
+  Manager and injects them into CLI runs.
+- Settings includes a Manual Web Session panel for providers that need a pasted
+  Cookie header while native browser-cookie import is pending.
+- More includes diagnostics, provider compatibility, and a GitHub release
+  update check inside the popover.
 - Windows CLI build is wired into GitHub Actions.
 - Release packaging verifies `CodexBar-Windows.exe --smoke-test` and
   `CodexBarCLI.exe --version` from the packaged folder.
@@ -57,10 +61,14 @@ First-time setup:
    click `Save API Key`.
 5. The popover focuses that provider and refreshes against it.
 
+For web-session providers, use `Settings` > `Manual Web Session` and paste a
+Cookie header.
+
 To install it into your user profile and create a Start Menu shortcut:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch -DesktopShortcut
 ```
 
 Manual workflow artifacts can also be downloaded from the `Release` or `CI`
@@ -98,22 +106,23 @@ CodexBarCLI.exe usage --format json --pretty
 CodexBarCLI.exe usage --format json --provider openrouter --pretty
 CodexBarCLI.exe config providers
 CodexBarCLI.exe config set-api-key --provider elevenlabs --stdin
+CodexBarCLI.exe config set-cookie --provider cursor --stdin
 CodexBarCLI.exe cost --provider claude --format json --pretty
 ```
 
-Provider toggles and API keys are stored in the local CodexBar-Windows config
-file at `%APPDATA%\CodexBar-Windows\config.json`.
+API keys saved from the Windows app are stored in Windows Credential Manager.
+Provider toggles, manual Cookie headers, and advanced provider options are
+stored in `%APPDATA%\CodexBar-Windows\config.json`.
 
 ## Roadmap
 
 1. Keep the Windows tray app and CLI green in CI.
 2. Continue matching the macOS menu-card and settings experience on Windows.
-3. Add Windows Credential Manager storage.
-4. Add browser profile cookie extraction for Edge, Chrome, Firefox, and
+3. Add browser profile cookie extraction for Edge, Chrome, Firefox, and
    Chromium.
-5. Replace PTY stubs with Windows ConPTY support where provider CLIs require an
+4. Replace PTY stubs with Windows ConPTY support where provider CLIs require an
    interactive terminal.
-6. Add a Windows installer and update channel.
+5. Add signed MSIX/WiX installer packaging.
 
 ## Development
 
