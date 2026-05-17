@@ -76,13 +76,13 @@ internal sealed class CliRunner
 
     public Task<CliResult> UsageTextAsync(CancellationToken cancellationToken) =>
         RunAsync(
-            ["usage", "--provider", settings.Provider, "--format", "text", "--no-color"],
+            UsageArguments("text", noColor: true),
             TimeSpan.FromSeconds(90),
             cancellationToken);
 
     public Task<CliResult> UsageJsonAsync(CancellationToken cancellationToken) =>
         RunAsync(
-            ["usage", "--provider", settings.Provider, "--format", "json", "--pretty"],
+            UsageArguments("json", pretty: true),
             TimeSpan.FromSeconds(90),
             cancellationToken);
 
@@ -188,6 +188,30 @@ internal sealed class CliRunner
         }
 
         return null;
+    }
+
+    private List<string> UsageArguments(string format, bool noColor = false, bool pretty = false)
+    {
+        var arguments = new List<string> { "usage" };
+        if (!string.Equals(settings.Provider, "enabled", StringComparison.OrdinalIgnoreCase))
+        {
+            arguments.Add("--provider");
+            arguments.Add(settings.Provider);
+        }
+
+        arguments.Add("--format");
+        arguments.Add(format);
+        if (pretty)
+        {
+            arguments.Add("--pretty");
+        }
+
+        if (noColor)
+        {
+            arguments.Add("--no-color");
+        }
+
+        return arguments;
     }
 
     private static void TryKill(Process process)

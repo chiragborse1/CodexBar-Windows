@@ -10,7 +10,8 @@ internal static class ProviderCatalog
 {
     public static readonly ProviderCatalogEntry[] Entries =
     [
-        new("all", "All enabled providers", "Selector", "Queries enabled providers from config."),
+        new("enabled", "Enabled providers", "Selector", "Queries providers enabled in config."),
+        new("all", "All providers", "Selector", "Queries every known provider."),
         new("openai", "OpenAI", "Ready", "API-backed usage path."),
         new("gemini", "Gemini", "Ready", "Uses Gemini CLI credentials and API calls."),
         new("antigravity", "Antigravity", "Ready", "Uses local probe when Antigravity is installed."),

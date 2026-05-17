@@ -180,7 +180,7 @@ internal sealed class SettingsForm : Form
         root.Controls.Add(providerBox, 1, 0);
         root.Controls.Add(new Label
         {
-            Text = "The tray popover renders the selected provider scope. Use all to mirror enabled providers from config.",
+            Text = "Use enabled to mirror config. Select one provider for a focused tray popover, or all for diagnostics.",
             AutoSize = true,
             MaximumSize = new Size(430, 0),
             ForeColor = Color.FromArgb(88, 92, 104),
@@ -421,6 +421,11 @@ internal sealed class SettingsForm : Form
             if (result.Succeeded)
             {
                 apiKeyBox.Clear();
+                if (ShouldAdoptSetupProviderScope())
+                {
+                    providerBox.Text = provider.Id;
+                }
+
                 SetProviderSetupMessage(
                     setupEnableBox.Checked
                         ? $"Saved API key and enabled {provider.DisplayName}."
@@ -436,6 +441,14 @@ internal sealed class SettingsForm : Form
         {
             SetProviderSetupBusy(false);
         }
+    }
+
+    private bool ShouldAdoptSetupProviderScope()
+    {
+        var scope = providerBox.Text.Trim();
+        return string.IsNullOrWhiteSpace(scope) ||
+            string.Equals(scope, "enabled", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(scope, "all", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task ChangeSelectedProviderEnabledAsync(bool enabled)

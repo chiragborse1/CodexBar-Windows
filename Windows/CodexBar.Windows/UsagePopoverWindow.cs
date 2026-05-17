@@ -674,10 +674,14 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     }
 
     private bool ShouldShowSetupHint(IReadOnlyList<UsagePayloadRow> rows) =>
-        string.Equals(settings.Provider, "all", StringComparison.OrdinalIgnoreCase) &&
+        IsBroadProviderScope(settings.Provider) &&
         rows.Count > 0 &&
         rows.All(row => row.Metrics.Count == 0) &&
         rows.Any(row => !string.IsNullOrWhiteSpace(row.Error));
+
+    private static bool IsBroadProviderScope(string provider) =>
+        string.Equals(provider, "enabled", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(provider, "all", StringComparison.OrdinalIgnoreCase);
 
     private static int RowSortRank(UsagePayloadRow row)
     {

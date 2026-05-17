@@ -11,7 +11,7 @@ internal sealed class AppSettings
     };
 
     public string? CliPath { get; set; }
-    public string Provider { get; set; } = "all";
+    public string Provider { get; set; } = "enabled";
     public int RefreshIntervalMinutes { get; set; } = 5;
     public bool LaunchAtLogin { get; set; }
     public bool StartMinimized { get; set; }
@@ -59,7 +59,7 @@ internal sealed class AppSettings
 
     private void Normalize()
     {
-        Provider = string.IsNullOrWhiteSpace(Provider) ? "all" : Provider.Trim().ToLowerInvariant();
+        Provider = string.IsNullOrWhiteSpace(Provider) ? "enabled" : Provider.Trim().ToLowerInvariant();
         RefreshIntervalMinutes = Math.Clamp(RefreshIntervalMinutes, 1, 120);
         if (string.IsNullOrWhiteSpace(CliPath))
         {
