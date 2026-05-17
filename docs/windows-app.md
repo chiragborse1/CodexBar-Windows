@@ -14,6 +14,24 @@ kept as diagnostics.
 
 ## Build
 
+Fast local development loop:
+
+```powershell
+pwsh .\Windows\dev-run.ps1
+```
+
+`dev-run.ps1` stops any running `CodexBar-Windows.exe`, builds a local package,
+launches `artifacts\codexbar-windows-x86_64\CodexBar-Windows.exe`, and checks
+that the tray app stays running. Useful variants:
+
+```powershell
+pwsh .\Windows\dev-run.ps1 -NoBuild
+pwsh .\Windows\dev-run.ps1 -NoBuild -NoLaunch -Test
+pwsh .\Windows\dev-run.ps1 -Configuration Debug
+```
+
+Manual build:
+
 ```powershell
 swift build -c release --product CodexBarCLI
 dotnet publish Windows\CodexBar.Windows\CodexBar.Windows.csproj -c Release -r win-x64 --self-contained false

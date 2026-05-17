@@ -57,6 +57,19 @@ and `CodexBarCLI.exe`.
 To build from source on Windows:
 
 ```powershell
+pwsh .\Windows\dev-run.ps1
+```
+
+That command builds a local package, stops any running dev copy, launches the
+fresh tray app, and verifies it stayed running. The runnable app folder is:
+
+```text
+artifacts\codexbar-windows-x86_64
+```
+
+Manual build commands:
+
+```powershell
 swift build -c release --product CodexBarCLI
 dotnet publish Windows\CodexBar.Windows\CodexBar.Windows.csproj -c Release -r win-x64 --self-contained false
 pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
@@ -92,6 +105,9 @@ file at `%APPDATA%\CodexBar-Windows\config.json`.
 Useful commands:
 
 ```powershell
+pwsh .\Windows\dev-run.ps1
+pwsh .\Windows\dev-run.ps1 -NoBuild
+pwsh .\Windows\dev-run.ps1 -NoBuild -NoLaunch -Test
 swift build -c release --product CodexBarCLI
 dotnet publish Windows\CodexBar.Windows\CodexBar.Windows.csproj -c Release -r win-x64 --self-contained false
 pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
