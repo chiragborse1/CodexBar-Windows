@@ -70,13 +70,25 @@ and app settings unless `-KeepSettings` is passed.
 - diagnostics window with structured usage table, compatibility table, and raw
   CLI output
 - usage refresh through the CLI backend
-- provider selection
+- provider selection with an `enabled` scope that mirrors config
+- API-key setup controls for providers supported by the CLI config store
 - CLI path override
 - tabbed settings sections for General, Display, Providers, Advanced, and About
 - launch at sign-in toggle
 - start minimized toggle
 - config file/folder shortcuts
 - manual smoke-test mode: `CodexBar-Windows.exe --smoke-test`
+
+## Provider Setup
+
+Open `Settings > Providers`, choose a provider, paste its API key, and click
+`Save API Key`. The setting is written to
+`%APPDATA%\CodexBar-Windows\config.json` through `CodexBarCLI.exe config
+set-api-key --stdin`, so the same config works from the app and CLI.
+
+The tray app defaults to the `enabled` provider scope. When a key is saved from
+Settings, the Display scope moves to that provider so the popover shows the
+configured provider instead of every known provider.
 
 ## Packaging
 

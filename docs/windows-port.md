@@ -25,6 +25,8 @@ Bring a complete CodexBar-Windows experience to Windows users:
   `README_RUN.txt`.
 - The tray popover parses CLI JSON into provider cards. Diagnostics keeps the
   structured table, compatibility list, and raw output available for debugging.
+- Settings can save API keys for config-backed providers and focus the popover
+  on the configured provider.
 - Browser-cookie extraction is stubbed on Windows.
 - PTY-backed interactive provider helpers are stubbed on Windows.
 - The localhost `serve` command is stubbed on Windows while Foundation
@@ -45,6 +47,7 @@ The tray app provides:
 - diagnostics window with refresh/copy/config/settings actions
 - scheduled refresh loop
 - configurable provider target
+- provider API-key setup for CLI-supported config secrets
 - CLI path override
 - launch-at-sign-in toggle through the current-user Run registry key
 - app settings in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`

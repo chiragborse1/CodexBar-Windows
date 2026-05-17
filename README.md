@@ -13,6 +13,8 @@ plus a standalone CLI for scripts and terminal workflows.
 
 Current build status:
 - Native Windows tray app opens a WPF CodexBar-style tray popover.
+- Settings can save API keys for Windows-ready providers through the bundled
+  CLI config command.
 - Windows CLI build is wired into GitHub Actions.
 - Release packaging verifies `CodexBar-Windows.exe --smoke-test` and
   `CodexBarCLI.exe --version` from the packaged folder.
@@ -24,8 +26,8 @@ Current limitations:
 - Browser cookie extraction is stubbed on Windows.
 - PTY-backed Codex and Claude CLI sessions are stubbed on Windows.
 - The localhost HTTP `serve` command is stubbed on Windows.
-- Some macOS menu-card details, charts, animations, and provider setup flows are
-  still being translated into native Windows UI.
+- Some macOS menu-card details, charts, and animations are still being
+  translated into native Windows UI.
 
 See [docs/windows-port.md](docs/windows-port.md) for the current implementation
 plan and compatibility notes.
@@ -42,6 +44,16 @@ asset, extract it, and run `CodexBar-Windows.exe`.
 Click the Windows tray icon to open the compact usage popover. Use `More` or
 the tray context menu to open diagnostics with the raw CLI output and provider
 compatibility table.
+
+First-time setup:
+
+1. Open the tray popover and click `Settings`.
+2. Open the `Providers` tab.
+3. Choose a Windows-ready provider such as OpenRouter, OpenAI, Copilot, Claude,
+   ElevenLabs, Moonshot, Kilo, or Venice.
+4. Paste the provider API key, keep `Enable provider after saving` checked, and
+   click `Save API Key`.
+5. Click `Save` in Settings. The popover will refresh against that provider.
 
 To install it into your user profile and create a Start Menu shortcut:
 
@@ -80,7 +92,8 @@ pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
 ```powershell
 CodexBar-Windows.exe
 CodexBarCLI.exe --version
-CodexBarCLI.exe usage --format json --provider all --pretty
+CodexBarCLI.exe usage --format json --pretty
+CodexBarCLI.exe usage --format json --provider openrouter --pretty
 CodexBarCLI.exe config providers
 CodexBarCLI.exe config set-api-key --provider elevenlabs --stdin
 CodexBarCLI.exe cost --provider claude --format json --pretty
