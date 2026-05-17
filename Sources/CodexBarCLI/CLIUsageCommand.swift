@@ -94,21 +94,6 @@ extension CodexBarCLI {
             }
         }
 
-        #if !os(macOS)
-        if let parsedSourceMode {
-            let requiresWeb = providerList.contains { selectedProvider in
-                Self.sourceModeRequiresWebSupport(parsedSourceMode, provider: selectedProvider)
-            }
-            if requiresWeb {
-                Self.exit(
-                    code: .failure,
-                    message: "Error: selected source requires web support and is only supported on macOS.",
-                    output: output,
-                    kind: .runtime)
-            }
-        }
-        #endif
-
         let browserDetection = BrowserDetection()
         let fetcher = UsageFetcher()
         let claudeFetcher = ClaudeUsageFetcher(browserDetection: browserDetection)
@@ -247,17 +232,6 @@ extension CodexBarCLI {
             base: baseSource,
             provider: provider,
             account: account)
-
-        #if !os(macOS)
-        if Self.sourceModeRequiresWebSupport(effectiveSourceMode, provider: provider) {
-            return Self.webSourceUnsupportedOutput(
-                provider: provider,
-                account: account,
-                source: effectiveSourceMode.rawValue,
-                status: status,
-                command: command)
-        }
-        #endif
 
         let fetchContext = ProviderFetchContext(
             runtime: .cli,
@@ -401,45 +375,4 @@ extension CodexBarCLI {
         #endif
     }
 
-    private static func webSourceUnsupportedOutput(
-        provider: UsageProvider,
-        account: ProviderTokenAccount?,
-        source: String,
-        status: ProviderStatusPayload?,
-        command: UsageCommandContext) -> UsageCommandOutput
-    {
-        var output = UsageCommandOutput()
-        let error = NSError(
-            domain: "CodexBarCLI",
-            code: 1,
-            userInfo: [NSLocalizedDescriptionKey:
-                "Error: selected source requires web support and is only supported on macOS."])
-        output.exitCode = .failure
-        if command.format == .json {
-            output.payload.append(Self.makeProviderErrorPayload(
-                provider: provider,
-                account: account?.label,
-                source: source,
-                status: status,
-                error: error,
-                kind: .runtime))
-        } else if !command.jsonOnly {
-            Self.writeStderr("Error: \(error.localizedDescription)\n")
-        }
-        return output
-    }
-
-    static func sourceModeRequiresWebSupport(_ sourceMode: ProviderSourceMode, provider: UsageProvider) -> Bool {
-        guard provider != .grok else {
-            return false
-        }
-        return switch sourceMode {
-        case .web:
-            true
-        case .auto:
-            ProviderDescriptorRegistry.descriptor(for: provider).fetchPlan.sourceModes.contains(.web)
-        case .cli, .oauth, .api:
-            false
-        }
-    }
 }
