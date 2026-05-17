@@ -1,0 +1,18 @@
+CodexBar-Windows Notices
+========================
+
+CodexBar-Windows includes code derived from the open-source CodexBar project:
+
+  https://github.com/steipete/CodexBar
+
+The original CodexBar project is licensed under the MIT License.
+
+Original copyright:
+
+  Copyright (c) 2026 Peter Steinberger
+
+Windows port modifications:
+
+  Copyright (c) 2026 chiragborse1
+
+The full MIT license text is available in LICENSE.
