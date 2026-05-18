@@ -32,15 +32,16 @@ Bring a complete CodexBar-Windows experience to Windows users:
   the configured provider.
 - More includes diagnostics, provider compatibility, config actions, and a
   GitHub release update check.
+- Usage includes provider dashboard shortcuts for providers with known usage or
+  account URLs.
+- The localhost `serve` command runs on Windows and is smoke-tested in CI
+  through `GET /health`.
 - Windows usage falls through to provider-specific CLI/API/OAuth/manual-cookie
   paths instead of failing early when a provider also has a web source.
 - CLI-side automatic browser-cookie extraction is stubbed on Windows. The
   Windows tray app can import supported Windows browser cookie stores into the
   config-backed manual Cookie header path.
 - PTY-backed interactive provider helpers are stubbed on Windows.
-- The localhost `serve` command is stubbed on Windows while Foundation
-  networking portability is completed.
-
 ## Windows App
 
 Project path:
@@ -56,6 +57,7 @@ The tray app provides:
 - compact provider switcher in the Usage view
 - embedded More view with refresh/copy/config actions and provider
   compatibility
+- selected-provider dashboard shortcuts from the Usage view
 - embedded update checker for GitHub releases
 - scheduled refresh loop
 - configurable provider target
@@ -72,6 +74,8 @@ The tray app provides:
 - API-backed provider paths that only require HTTP and config/environment
   secrets.
 - JSON and text CLI output.
+- `serve` local HTTP endpoints on `127.0.0.1` for `/health`, `/usage`, and
+  `/cost`.
 - `config validate`, `config dump`, `config providers`, provider enable/disable,
   config-backed manual Cookie headers, and provider setup from the tray app.
 - supported Windows browser cookie import from the tray app for web-session
@@ -84,7 +88,8 @@ The tray app provides:
 - CLI-side OpenAI/Claude web dashboard scraping still needs native Windows
   browser-cookie support.
 - Codex/Claude interactive CLI sessions need ConPTY-backed PTY support.
-- CLI-side automatic browser-cookie import is not implemented yet.
+- CLI-side automatic browser-cookie import is not implemented yet; the tray app
+  imports supported browser sessions into config-backed manual credentials.
 - MSIX/WiX installer packaging, code signing, and automatic update install are
   not implemented yet.
 

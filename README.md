@@ -24,11 +24,15 @@ Current build status:
   web-session providers, or accept a pasted Cookie header.
 - More includes diagnostics, provider compatibility, and a GitHub release
   update check inside the popover.
+- More also includes an About panel, and Usage can open the selected
+  provider's dashboard when a known account/usage URL is available.
 - Windows usage no longer fails early just because a provider has a web source;
   CLI/API/OAuth/manual-cookie fallbacks now run provider by provider.
 - Windows CLI build is wired into GitHub Actions.
 - Release packaging verifies `CodexBar-Windows.exe --smoke-test` and
   `CodexBarCLI.exe --version` from the packaged folder.
+- CI also smoke-tests `CodexBarCLI.exe serve` on Windows through the localhost
+  `/health` endpoint.
 - Windows release packaging is configured for an app `.zip` artifact containing
   `CodexBar-Windows.exe`, `CodexBarCLI.exe`, bundled Swift runtime DLLs,
   `README_RUN.txt`, install scripts, and `VERSION`.
@@ -37,7 +41,6 @@ Current limitations:
 - CLI-side automatic browser cookie extraction is still stubbed on Windows;
   use the tray app's browser import or paste a Cookie header.
 - PTY-backed Codex and Claude CLI sessions are stubbed on Windows.
-- The localhost HTTP `serve` command is stubbed on Windows.
 - Some macOS charts, provider icons, and animation details are still being
   translated into native Windows UI.
 
@@ -117,6 +120,7 @@ CodexBarCLI.exe config providers
 CodexBarCLI.exe config set-api-key --provider elevenlabs --stdin
 CodexBarCLI.exe config set-cookie --provider cursor --stdin
 CodexBarCLI.exe cost --provider claude --format json --pretty
+CodexBarCLI.exe serve --port 8080 --refresh-interval 60
 ```
 
 API keys saved from the Windows app are stored in Windows Credential Manager.

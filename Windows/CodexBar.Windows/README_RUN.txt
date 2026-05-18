@@ -38,6 +38,7 @@ Useful CLI checks:
   CodexBarCLI.exe config validate --format json --pretty
   CodexBarCLI.exe usage --format json --pretty
   CodexBarCLI.exe usage --provider openrouter --format json --pretty
+  CodexBarCLI.exe serve --port 8080 --refresh-interval 60
 
 API keys saved from the app are stored in Windows Credential Manager.
 
