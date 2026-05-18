@@ -28,8 +28,9 @@ Bring a complete CodexBar-Windows experience to Windows users:
   diagnostics inside the tray surface.
 - Settings saves API keys to Windows Credential Manager, imports Edge,
   Chrome/Chromium, Brave, Vivaldi, Opera, and Firefox cookies for web-session
-  providers, supports manual Cookie header fallback, and focuses the popover on
-  the configured provider.
+  providers, imports Windsurf Chromium localStorage sessions, supports manual
+  Cookie header/session payload fallback, and focuses the popover on the
+  configured provider.
 - More includes diagnostics, provider compatibility, config actions, and a
   GitHub release update check.
 - Usage includes provider dashboard shortcuts for providers with known usage or
@@ -38,9 +39,9 @@ Bring a complete CodexBar-Windows experience to Windows users:
   through `GET /health`.
 - Windows usage falls through to provider-specific CLI/API/OAuth/manual-cookie
   paths instead of failing early when a provider also has a web source.
-- CLI-side automatic browser-cookie extraction is stubbed on Windows. The
-  Windows tray app can import supported Windows browser cookie stores into the
-  config-backed manual Cookie header path.
+- CLI-side automatic browser-cookie extraction is stubbed on Windows. Windsurf
+  has a Windows Chromium localStorage importer; the tray app can import
+  supported browser sessions into the config-backed manual credential path.
 - PTY-backed interactive provider helpers are stubbed on Windows.
 ## Windows App
 
@@ -63,7 +64,8 @@ The tray app provides:
 - configurable provider target
 - embedded provider API-key setup backed by Windows Credential Manager
 - embedded web-session setup with Edge, Chrome/Chromium, Brave, Vivaldi,
-  Opera, and Firefox cookie import plus manual Cookie header fallback
+  Opera, and Firefox cookie import, Windsurf Chromium localStorage import, and
+  manual Cookie header/session payload fallback
 - CLI path override
 - launch-at-sign-in toggle through the current-user Run registry key
 - app settings in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`
@@ -80,6 +82,7 @@ The tray app provides:
   config-backed manual Cookie headers, and provider setup from the tray app.
 - supported Windows browser cookie import from the tray app for web-session
   providers.
+- Windsurf web usage through Windows Chromium localStorage session import.
 - Local cost commands where their scanner inputs are available.
 - Native tray launch and popover refresh through the bundled CLI.
 

@@ -21,7 +21,8 @@ Current build status:
   Manager and injects them into CLI runs.
 - Settings includes a Manual Web Session panel that can import Edge,
   Chrome/Chromium, Brave, Vivaldi, Opera, or Firefox cookies for supported
-  web-session providers, or accept a pasted Cookie header.
+  web-session providers, import Windsurf Chromium localStorage sessions, or
+  accept a pasted Cookie header/session payload.
 - More includes diagnostics, provider compatibility, and a GitHub release
   update check inside the popover.
 - More also includes an About panel, and Usage can open the selected
@@ -73,8 +74,9 @@ First-time setup:
 
 For web-session providers, use `Settings` > `Manual Web Session`, select the
 provider, then click the import button for the browser where you are signed in.
-If browser import cannot read a session, paste a Cookie header and click
-`Save Cookie`.
+For Windsurf this imports its Chromium localStorage session payload. If browser
+import cannot read a session, paste a Cookie header or supported session
+payload and click `Save Cookie`.
 
 To install it into your user profile and create a Start Menu shortcut:
 

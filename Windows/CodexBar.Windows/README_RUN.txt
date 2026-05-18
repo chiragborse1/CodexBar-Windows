@@ -24,8 +24,10 @@ First-time setup:
   4. Return to Usage.
 
 For web-session providers, open Settings > Manual Web Session, pick the
-provider, and import from the browser where you are signed in. If browser
-import cannot read your session, paste a Cookie header and click Save Cookie.
+provider, and import from the browser where you are signed in. Windsurf imports
+its Chromium localStorage session payload. If browser import cannot read your
+session, paste a Cookie header or supported session payload and click Save
+Cookie.
 
 The bundled CLI backend is:
   CodexBarCLI.exe
