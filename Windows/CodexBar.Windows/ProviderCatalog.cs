@@ -46,7 +46,7 @@ internal static class ProviderCatalog
         new("amp", "Amp", "Partial", "Supports Windows browser cookie import for web mode."),
         new("augment", "Augment", "Partial", "CLI path can work; browser cookie import is available."),
         new("ollama", "Ollama", "Partial", "Web path supports browser cookie import."),
-        new("windsurf", "Windsurf", "Partial", "Needs Windows local-storage import."),
+        new("windsurf", "Windsurf", "Ready", "Uses Windows Chromium localStorage session import."),
         new("perplexity", "Perplexity", "Partial", "Manual/env session and browser cookie import can work."),
         new("mimo", "Xiaomi MiMo", "Partial", "Supports Windows browser cookie import."),
         new("abacus", "Abacus AI", "Partial", "Supports Windows browser cookie import."),

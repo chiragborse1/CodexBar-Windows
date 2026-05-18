@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 // MARK: - API Response Model
 
@@ -101,8 +104,6 @@ extension WindsurfGetPlanStatusResponse {
 }
 
 // MARK: - Session Material
-
-#if os(macOS)
 
 struct WindsurfDevinSessionAuth: Codable, Equatable {
     let sessionToken: String
@@ -670,5 +671,3 @@ private struct ProtoReader {
         }
     }
 }
-
-#endif

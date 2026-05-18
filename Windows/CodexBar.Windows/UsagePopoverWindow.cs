@@ -620,7 +620,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             IsChecked = true,
             Margin = new Wpf.Thickness(0, 8, 0, 0),
         };
-        var resultText = Caption("Manual Cookie headers are saved in the local config file.");
+        var resultText = Caption("Manual Cookie headers and session payloads are saved in the local config file.");
         var saveButton = PrimaryButton("Save Cookie");
         var clearButton = SecondaryButton("Clear Text");
         var importButtons = new List<WpfControls.Button>();
@@ -647,12 +647,12 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             var cookieHeader = cookieBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(cookieHeader))
             {
-                SetResult(resultText, "Paste a Cookie header before saving.", isError: true);
+                SetResult(resultText, "Paste a Cookie header or session payload before saving.", isError: true);
                 return;
             }
 
             SetButtonsEnabled(false, importButtons.Concat(new[] { saveButton, clearButton }).ToArray());
-            SetResult(resultText, "Saving manual Cookie header...", isError: false);
+            SetResult(resultText, "Saving manual web session...", isError: false);
             try
             {
                 var result = await cliRunner.SetCookieHeaderAsync(
@@ -665,7 +665,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
                     cookieBox.Clear();
                     settings.Provider = provider.Id;
                     SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
-                    SetResult(resultText, $"Saved manual Cookie header for {provider.DisplayName}.", isError: false);
+                    SetResult(resultText, $"Saved manual web session for {provider.DisplayName}.", isError: false);
                 }
                 else
                 {
@@ -680,7 +680,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         clearButton.Click += (_, _) =>
         {
             cookieBox.Clear();
-            resultText.Text = "Manual Cookie headers are saved in the local config file.";
+            resultText.Text = "Manual Cookie headers and session payloads are saved in the local config file.";
             resultText.Foreground = Brush("#6E6E73");
         };
 
@@ -689,7 +689,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         content.Children.Add(providerBox);
         content.Children.Add(FieldLabel("Import browser session"));
         content.Children.Add(ActionWrap(importButtons.Cast<Wpf.FrameworkElement>().ToArray()));
-        content.Children.Add(FieldLabel("Cookie header"));
+        content.Children.Add(FieldLabel("Cookie header or session payload"));
         content.Children.Add(cookieBox);
         content.Children.Add(enableBox);
         content.Children.Add(ActionRow(saveButton, clearButton));
@@ -697,7 +697,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         return SectionCard(
             "Manual Web Session",
-            "Import from Windows browsers or paste a Cookie header when auto import cannot read a session.",
+            "Import from Windows browsers or paste a Cookie header/session payload when auto import cannot read a session.",
             content);
     }
 
@@ -719,6 +719,12 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         SetResult(resultText, $"Reading {browser.DisplayName} browser cookies...", isError: false);
         try
         {
+            if (string.Equals(provider.Id, "windsurf", StringComparison.OrdinalIgnoreCase))
+            {
+                await ImportWindsurfSessionFromBrowserAsync(browser, provider, cookieBox, enableBox, resultText);
+                return;
+            }
+
             var importResult = await BrowserCookieImporter.ImportAsync(
                 provider.Id,
                 browser.Id,
@@ -763,6 +769,47 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         finally
         {
             SetButtonsEnabled(true, buttons);
+        }
+    }
+
+    private async Task ImportWindsurfSessionFromBrowserAsync(
+        BrowserCookieBrowser browser,
+        ProviderChoice provider,
+        WpfControls.TextBox cookieBox,
+        WpfControls.CheckBox enableBox,
+        WpfControls.TextBlock resultText)
+    {
+        SetResult(resultText, $"Reading {browser.DisplayName} Windsurf localStorage...", isError: false);
+        var importResult = await BrowserLocalStorageImporter.ImportWindsurfAsync(
+            browser.Id,
+            CancellationToken.None);
+        if (!importResult.Succeeded || string.IsNullOrWhiteSpace(importResult.SessionPayload))
+        {
+            SetResult(resultText, importResult.Message, isError: true);
+            return;
+        }
+
+        cookieBox.Text = importResult.SessionPayload;
+        SetResult(resultText, $"Saving Windsurf session from {importResult.SourceLabel}...", isError: false);
+
+        var saveResult = await cliRunner.SetCookieHeaderAsync(
+            provider.Id,
+            importResult.SessionPayload,
+            enableBox.IsChecked == true,
+            CancellationToken.None);
+        if (saveResult.Succeeded)
+        {
+            cookieBox.Clear();
+            settings.Provider = provider.Id;
+            SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+            SetResult(
+                resultText,
+                $"Saved Windsurf session from {importResult.SourceLabel}.",
+                isError: false);
+        }
+        else
+        {
+            SetResult(resultText, ShortResultMessage(saveResult), isError: true);
         }
     }
 

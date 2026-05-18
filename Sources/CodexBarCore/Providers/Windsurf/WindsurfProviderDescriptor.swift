@@ -52,7 +52,7 @@ struct WindsurfWebFetchStrategy: ProviderFetchStrategy {
     }
 
     func fetch(_ context: ProviderFetchContext) async throws -> ProviderFetchResult {
-        #if os(macOS)
+        #if os(macOS) || os(Windows)
         let cookieSource = context.settings?.windsurf?.cookieSource ?? .auto
         let manualToken = Self.manualToken(from: context)
         let usage = try await WindsurfWebFetcher.fetchUsage(
