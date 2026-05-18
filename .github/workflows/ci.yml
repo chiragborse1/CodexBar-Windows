@@ -54,6 +54,52 @@ jobs:
             -Test `
             -OutputRoot "$env:RUNNER_TEMP\codexbar-windows"
 
+      - name: Local HTTP server smoke check
+        shell: pwsh
+        run: |
+          $packageDir = "${{ steps.package.outputs.package_dir }}"
+          $cli = Join-Path $packageDir "CodexBarCLI.exe"
+          $port = Get-Random -Minimum 20000 -Maximum 50000
+          $stderr = Join-Path $env:RUNNER_TEMP "codexbar-serve.err.log"
+          $stdout = Join-Path $env:RUNNER_TEMP "codexbar-serve.out.log"
+          $process = Start-Process `
+            -FilePath $cli `
+            -ArgumentList @("serve", "--port", "$port", "--refresh-interval", "0") `
+            -WorkingDirectory $packageDir `
+            -RedirectStandardError $stderr `
+            -RedirectStandardOutput $stdout `
+            -PassThru
+
+          try {
+            $health = $null
+            for ($i = 0; $i -lt 40; $i++) {
+              Start-Sleep -Milliseconds 250
+              if ($process.HasExited) {
+                throw "CodexBarCLI serve exited early with code $($process.ExitCode). stderr: $(Get-Content $stderr -Raw)"
+              }
+
+              try {
+                $health = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$port/health" -TimeoutSec 2
+                break
+              }
+              catch {
+                $health = $null
+              }
+            }
+
+            if ($null -eq $health) {
+              throw "Health endpoint did not respond. stderr: $(Get-Content $stderr -Raw)"
+            }
+            if ($health.StatusCode -ne 200 -or $health.Content -notmatch '"status"\s*:\s*"ok"') {
+              throw "Unexpected health response: $($health.StatusCode) $($health.Content)"
+            }
+          }
+          finally {
+            if (-not $process.HasExited) {
+              Stop-Process -Id $process.Id -Force
+            }
+          }
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v6
         with:
