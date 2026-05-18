@@ -42,6 +42,9 @@ Useful CLI checks:
   CodexBarCLI.exe usage --provider openrouter --format json --pretty
   CodexBarCLI.exe serve --port 8080 --refresh-interval 60
 
+Codex and Claude CLI probes use the packaged Windows ConPTY bridge when
+CodexBar-Windows.exe is beside CodexBarCLI.exe.
+
 API keys saved from the app are stored in Windows Credential Manager.
 
 Provider toggles, manual Cookie headers, and advanced provider options are

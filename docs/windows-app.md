@@ -77,7 +77,9 @@ registration, install folder, launch-at-sign-in entry, and app settings unless
 - provider selection with an `enabled` scope that mirrors config
 - embedded API-key setup controls backed by Windows Credential Manager
 - embedded web-session setup with Edge, Chrome/Chromium, Brave, Vivaldi,
-  Opera, and Firefox cookie import plus manual Cookie header fallback
+  Opera, and Firefox cookie import, Windsurf Chromium localStorage import, and
+  manual Cookie header/session payload fallback
+- packaged ConPTY bridge used by Codex/Claude CLI probes
 - CLI path override
 - embedded settings for refresh scope, refresh interval, startup behavior, and
   provider setup
@@ -85,6 +87,7 @@ registration, install folder, launch-at-sign-in entry, and app settings unless
 - start minimized toggle
 - config file/folder shortcuts
 - manual smoke-test mode: `CodexBar-Windows.exe --smoke-test`
+- ConPTY bridge smoke-test mode: `CodexBar-Windows.exe --pty-bridge-smoke-test`
 
 ## Provider Setup
 
@@ -98,7 +101,8 @@ For web-session providers, use `Settings` > `Manual Web Session`, choose the
 provider, and import a signed-in browser session. The app reads Chromium cookie
 stores through Windows DPAPI and Firefox `cookies.sqlite` profiles, then saves
 the result through `CodexBarCLI.exe config set-cookie --stdin`. If browser
-import cannot read the session, paste a Cookie header and click `Save Cookie`.
+import cannot read the session, paste a Cookie header or supported session
+payload and click `Save Cookie`.
 
 The tray app defaults to the `enabled` provider scope. Use the compact provider
 switcher at the top of Usage for quick scope changes. When a key is saved from

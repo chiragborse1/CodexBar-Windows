@@ -39,10 +39,11 @@ Bring a complete CodexBar-Windows experience to Windows users:
   through `GET /health`.
 - Windows usage falls through to provider-specific CLI/API/OAuth/manual-cookie
   paths instead of failing early when a provider also has a web source.
+- Codex and Claude interactive CLI helpers use the packaged Windows ConPTY
+  bridge when the tray app and CLI are in the same folder.
 - CLI-side automatic browser-cookie extraction is stubbed on Windows. Windsurf
   has a Windows Chromium localStorage importer; the tray app can import
   supported browser sessions into the config-backed manual credential path.
-- PTY-backed interactive provider helpers are stubbed on Windows.
 ## Windows App
 
 Project path:
@@ -83,6 +84,7 @@ The tray app provides:
 - supported Windows browser cookie import from the tray app for web-session
   providers.
 - Windsurf web usage through Windows Chromium localStorage session import.
+- Codex and Claude interactive CLI usage through the packaged ConPTY bridge.
 - Local cost commands where their scanner inputs are available.
 - Native tray launch and popover refresh through the bundled CLI.
 
@@ -90,7 +92,6 @@ The tray app provides:
 
 - CLI-side OpenAI/Claude web dashboard scraping still needs native Windows
   browser-cookie support.
-- Codex/Claude interactive CLI sessions need ConPTY-backed PTY support.
 - CLI-side automatic browser-cookie import is not implemented yet; the tray app
   imports supported browser sessions into config-backed manual credentials.
 - MSIX/WiX installer packaging, code signing, and automatic update install are
@@ -99,9 +100,8 @@ The tray app provides:
 ## Next Steps
 
 1. Move selected browser imports into CLI-side automatic provider fallback.
-2. Add ConPTY support for interactive provider CLIs.
-3. Add `.msix` or WiX installer packaging.
-4. Add signed release builds and automatic update install.
+2. Add `.msix` or WiX installer packaging.
+3. Add signed release builds and automatic update install.
 
 ## Repo Policy
 

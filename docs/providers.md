@@ -11,11 +11,12 @@ require macOS-only browser, WebKit, or Keychain behavior:
 ```text
 openai, gemini, antigravity, copilot, zai, kilo, vertexai, jetbrains, kimik2,
 moonshot, synthetic, warp, openrouter, elevenlabs, doubao, deepseek,
-codebuff, crof, venice, bedrock
+codebuff, crof, venice, bedrock, codex, claude, windsurf
 ```
 
 Some of these still require external tools or credentials, such as `gcloud`,
-provider API keys, or vendor CLI login files.
+provider API keys, vendor CLI login files, or a signed-in Windsurf Chromium
+session.
 
 The Windows app shows the same compatibility split in `More` > provider
 compatibility.
@@ -27,9 +28,8 @@ paths currently depend on browser cookies, WebKit, or interactive terminal
 sessions:
 
 ```text
-codex, claude, cursor, opencode, opencodego, alibaba, factory, manus, kimi,
-minimax, augment, kiro, amp, ollama, windsurf, perplexity, mimo, abacus, mistral,
-commandcode, stepfun, grok
+cursor, opencode, opencodego, alibaba, factory, manus, kimi, minimax, augment,
+kiro, amp, ollama, perplexity, mimo, abacus, mistral, commandcode, stepfun, grok
 ```
 
 Use API keys, imported browser cookies, manual cookies, or provider-specific
@@ -37,8 +37,9 @@ environment variables where those modes exist. The Windows CLI now lets
 provider-specific fallbacks run instead of rejecting a provider early just
 because it has a web source. The tray app can import supported Windows browser
 cookies into the manual Cookie header path for supported web-session providers.
-CLI-side automatic browser-cookie import and ConPTY-backed interactive sessions
-are tracked in [windows-port.md](windows-port.md).
+Codex and Claude interactive CLI probes use the packaged Windows ConPTY bridge.
+CLI-side automatic browser-cookie import is tracked in
+[windows-port.md](windows-port.md).
 
 ## Provider IDs
 

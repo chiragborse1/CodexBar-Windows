@@ -29,8 +29,11 @@ Current build status:
   provider's dashboard when a known account/usage URL is available.
 - Windows usage no longer fails early just because a provider has a web source;
   CLI/API/OAuth/manual-cookie fallbacks now run provider by provider.
+- Codex and Claude interactive CLI probes use a packaged Windows ConPTY bridge
+  when `CodexBar-Windows.exe` is beside `CodexBarCLI.exe`.
 - Windows CLI build is wired into GitHub Actions.
 - Release packaging verifies `CodexBar-Windows.exe --smoke-test` and
+  `CodexBar-Windows.exe --pty-bridge-smoke-test`, plus
   `CodexBarCLI.exe --version` from the packaged folder.
 - CI also smoke-tests `CodexBarCLI.exe serve` on Windows through the localhost
   `/health` endpoint.
@@ -41,7 +44,6 @@ Current build status:
 Current limitations:
 - CLI-side automatic browser cookie extraction is still stubbed on Windows;
   use the tray app's browser import or paste a Cookie header.
-- PTY-backed Codex and Claude CLI sessions are stubbed on Windows.
 - Some macOS charts, provider icons, and animation details are still being
   translated into native Windows UI.
 
@@ -134,9 +136,7 @@ stored in `%APPDATA%\CodexBar-Windows\config.json`.
 1. Keep the Windows tray app and CLI green in CI.
 2. Continue matching the macOS menu-card and settings experience on Windows.
 3. Move browser import into CLI-side automatic provider fallback where useful.
-4. Replace PTY stubs with Windows ConPTY support where provider CLIs require an
-   interactive terminal.
-5. Add signed MSIX/WiX installer packaging.
+4. Add signed MSIX/WiX installer packaging.
 
 ## Development
 
@@ -153,7 +153,7 @@ swift test
 ```
 
 The shared Swift engine still contains platform gates for providers that depend
-on browser cookies, WebKit, keychain, or PTY behavior. Windows work should stay
+on browser cookies, WebKit, or keychain behavior. Windows work should stay
 isolated behind those gates until native Windows implementations exist.
 
 ## Attribution

@@ -14,6 +14,10 @@ In-popover Settings and More release.
   config file/folder shortcuts, and provider compatibility.
 - Refreshed the visual design with a wider popover, segmented navigation,
   softer cards, styled WPF buttons, and cleaner spacing.
+- Added Windows Credential Manager-backed API-key storage.
+- Added browser session import for Edge, Chrome/Chromium, Brave, Vivaldi,
+  Opera, Firefox, and Windsurf Chromium localStorage.
+- Added a packaged Windows ConPTY bridge for Codex and Claude CLI probes.
 
 ## Install
 
@@ -32,7 +36,6 @@ Settings > Provider Setup > select provider > paste API key > Save API Key
 
 ## Known gaps
 
-- Windows Credential Manager storage is not implemented yet.
-- Browser cookie import for Edge, Chrome, Firefox, and Chromium is not implemented yet.
-- Interactive CLI providers still need Windows ConPTY support.
+- CLI-side automatic browser-cookie import is not implemented yet; use the
+  tray app import flow or manual Cookie/session payload setup.
 - The package is not code-signed yet, so Windows SmartScreen may warn.

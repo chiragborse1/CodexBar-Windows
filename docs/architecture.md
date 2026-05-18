@@ -9,7 +9,8 @@ read_when:
 
 ## Modules
 
-- `Windows/CodexBar.Windows`: WinForms tray app, popover UI, diagnostics, settings, startup integration, and release packaging script.
+- `Windows/CodexBar.Windows`: WinForms tray app, popover UI, diagnostics,
+  settings, startup integration, ConPTY bridge, and release packaging script.
 - `Sources/CodexBarCLI`: Swift CLI entry point used directly by users and by the Windows tray app.
 - `Sources/CodexBarCore`: provider registry, fetchers, config models, cache stores, cost scanners, logging, and platform gates.
 - `Sources/CodexBarMacros` and `Sources/CodexBarMacroSupport`: SwiftSyntax macro support for provider registration.
@@ -34,14 +35,16 @@ The `Windows/package-windows.ps1` script builds and packages:
 - `README_RUN.txt`
 - `VERSION`
 
-The script validates the package by running `CodexBar-Windows.exe --smoke-test`
-and `CodexBarCLI.exe --version` from the packaged folder.
+The script validates the package by running `CodexBar-Windows.exe --smoke-test`,
+`CodexBar-Windows.exe --pty-bridge-smoke-test`, and `CodexBarCLI.exe --version`
+from the packaged folder.
 
 ## Platform Boundaries
 
 Windows-native work belongs in `Windows/CodexBar.Windows`. Shared provider and
 CLI fixes belong in `Sources/CodexBarCore` and `Sources/CodexBarCLI`.
 
-Browser-cookie extraction, keychain access, WebKit dashboards, and PTY-backed
-interactive commands must stay behind platform checks until Windows-native
-Credential Manager, browser-cookie, and ConPTY implementations are added.
+Browser-cookie extraction, keychain access, and WebKit dashboards must stay
+behind platform checks until Windows-native Credential Manager and browser
+session implementations are added. Interactive CLI commands on Windows route
+through the packaged ConPTY bridge.
