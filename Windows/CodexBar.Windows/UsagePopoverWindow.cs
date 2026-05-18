@@ -623,6 +623,18 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var resultText = Caption("Manual Cookie headers are saved in the local config file.");
         var saveButton = PrimaryButton("Save Cookie");
         var clearButton = SecondaryButton("Clear Text");
+        var importButtons = new List<WpfControls.Button>();
+        foreach (var browser in BrowserCookieImporter.Browsers)
+        {
+            var importButton = SecondaryButton($"Import {browser.DisplayName}");
+            importButton.ToolTip = $"Import {browser.DisplayName} cookies for the selected provider.";
+            importButton.Click += async (_, _) =>
+            {
+                var buttons = importButtons.Concat(new[] { saveButton, clearButton }).ToArray();
+                await ImportCookieFromBrowserAsync(browser, providerBox, cookieBox, enableBox, resultText, buttons);
+            };
+            importButtons.Add(importButton);
+        }
 
         saveButton.Click += async (_, _) =>
         {
@@ -639,7 +651,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
                 return;
             }
 
-            SetButtonsEnabled(false, saveButton, clearButton);
+            SetButtonsEnabled(false, importButtons.Concat(new[] { saveButton, clearButton }).ToArray());
             SetResult(resultText, "Saving manual Cookie header...", isError: false);
             try
             {
@@ -662,7 +674,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             }
             finally
             {
-                SetButtonsEnabled(true, saveButton, clearButton);
+                SetButtonsEnabled(true, importButtons.Concat(new[] { saveButton, clearButton }).ToArray());
             }
         };
         clearButton.Click += (_, _) =>
@@ -675,6 +687,8 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var content = new WpfControls.StackPanel();
         content.Children.Add(FieldLabel("Web provider"));
         content.Children.Add(providerBox);
+        content.Children.Add(FieldLabel("Import browser session"));
+        content.Children.Add(ActionRow(importButtons.Cast<Wpf.FrameworkElement>().ToArray()));
         content.Children.Add(FieldLabel("Cookie header"));
         content.Children.Add(cookieBox);
         content.Children.Add(enableBox);
@@ -683,8 +697,73 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         return SectionCard(
             "Manual Web Session",
-            "Use this for providers whose Windows browser-cookie auto import is still pending.",
+            "Import from Windows browsers or paste a Cookie header when auto import cannot read a session.",
             content);
+    }
+
+    private async Task ImportCookieFromBrowserAsync(
+        BrowserCookieBrowser browser,
+        WpfControls.ComboBox providerBox,
+        WpfControls.TextBox cookieBox,
+        WpfControls.CheckBox enableBox,
+        WpfControls.TextBlock resultText,
+        params WpfControls.Button[] buttons)
+    {
+        if (providerBox.SelectedItem is not ProviderChoice provider)
+        {
+            SetResult(resultText, "Choose a provider first.", isError: true);
+            return;
+        }
+
+        SetButtonsEnabled(false, buttons);
+        SetResult(resultText, $"Reading {browser.DisplayName} browser cookies...", isError: false);
+        try
+        {
+            var importResult = await BrowserCookieImporter.ImportAsync(
+                provider.Id,
+                browser.Id,
+                CancellationToken.None);
+            if (!importResult.Succeeded || string.IsNullOrWhiteSpace(importResult.CookieHeader))
+            {
+                SetResult(resultText, importResult.Message, isError: true);
+                return;
+            }
+
+            cookieBox.Text = importResult.CookieHeader;
+            SetResult(resultText, $"Saving imported session from {importResult.SourceLabel}...", isError: false);
+
+            var saveResult = await cliRunner.SetCookieHeaderAsync(
+                provider.Id,
+                importResult.CookieHeader,
+                enableBox.IsChecked == true,
+                CancellationToken.None);
+            if (saveResult.Succeeded)
+            {
+                cookieBox.Clear();
+                settings.Provider = provider.Id;
+                SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+                SetResult(
+                    resultText,
+                    $"Saved {provider.DisplayName} session from {importResult.SourceLabel}.",
+                    isError: false);
+            }
+            else
+            {
+                SetResult(resultText, ShortResultMessage(saveResult), isError: true);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            SetResult(resultText, "Browser cookie import was cancelled.", isError: true);
+        }
+        catch (Exception ex)
+        {
+            SetResult(resultText, ex.Message, isError: true);
+        }
+        finally
+        {
+            SetButtonsEnabled(true, buttons);
+        }
     }
 
     private Wpf.FrameworkElement BuildDiagnosticsView()
