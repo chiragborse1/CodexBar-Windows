@@ -17,9 +17,29 @@ internal static class BrowserCookieImporter
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Google", "Chrome", "User Data"),
             BrowserCookieBrowserKind.Chromium),
+        new("chrome-canary", "Chrome Canary", Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Google", "Chrome SxS", "User Data"),
+            BrowserCookieBrowserKind.Chromium),
+        new("chromium", "Chromium", Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Chromium", "User Data"),
+            BrowserCookieBrowserKind.Chromium),
         new("brave", "Brave", Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "BraveSoftware", "Brave-Browser", "User Data"),
+            BrowserCookieBrowserKind.Chromium),
+        new("vivaldi", "Vivaldi", Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Vivaldi", "User Data"),
+            BrowserCookieBrowserKind.Chromium),
+        new("opera", "Opera", Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Opera Software", "Opera Stable"),
+            BrowserCookieBrowserKind.Chromium),
+        new("opera-gx", "Opera GX", Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Opera Software", "Opera GX Stable"),
             BrowserCookieBrowserKind.Chromium),
         new("firefox", "Firefox", Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -222,6 +242,11 @@ internal static class BrowserCookieImporter
 
     private static IEnumerable<BrowserProfile> DiscoverChromiumProfiles(string userDataDirectory)
     {
+        if (ResolveCookiesPath(userDataDirectory) is { } rootCookiesPath)
+        {
+            yield return new BrowserProfile(userDataDirectory, "Default", rootCookiesPath);
+        }
+
         foreach (var directory in Directory.EnumerateDirectories(userDataDirectory))
         {
             var name = Path.GetFileName(directory);

@@ -688,7 +688,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         content.Children.Add(FieldLabel("Web provider"));
         content.Children.Add(providerBox);
         content.Children.Add(FieldLabel("Import browser session"));
-        content.Children.Add(ActionRow(importButtons.Cast<Wpf.FrameworkElement>().ToArray()));
+        content.Children.Add(ActionWrap(importButtons.Cast<Wpf.FrameworkElement>().ToArray()));
         content.Children.Add(FieldLabel("Cookie header"));
         content.Children.Add(cookieBox);
         content.Children.Add(enableBox);
@@ -1527,6 +1527,21 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         foreach (var control in controls)
         {
             control.Margin = new Wpf.Thickness(0, 0, 6, 0);
+            row.Children.Add(control);
+        }
+
+        return row;
+    }
+
+    private static WpfControls.WrapPanel ActionWrap(params Wpf.FrameworkElement[] controls)
+    {
+        var row = new WpfControls.WrapPanel
+        {
+            Margin = new Wpf.Thickness(0, 9, 0, 0),
+        };
+        foreach (var control in controls)
+        {
+            control.Margin = new Wpf.Thickness(0, 0, 6, 6);
             row.Children.Add(control);
         }
 
