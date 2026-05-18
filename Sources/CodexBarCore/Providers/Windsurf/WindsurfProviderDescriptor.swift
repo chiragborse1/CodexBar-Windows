@@ -83,7 +83,11 @@ struct WindsurfLocalFetchStrategy: ProviderFetchStrategy {
     let kind: ProviderFetchKind = .localProbe
 
     func isAvailable(_ context: ProviderFetchContext) async -> Bool {
+        #if os(Windows)
+        false
+        #else
         context.sourceMode != .web
+        #endif
     }
 
     func fetch(_ context: ProviderFetchContext) async throws -> ProviderFetchResult {
