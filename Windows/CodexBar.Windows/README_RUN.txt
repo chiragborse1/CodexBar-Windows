@@ -23,8 +23,9 @@ First-time setup:
   3. Paste its API key and click Save API Key.
   4. Return to Usage.
 
-For web-session providers, open Settings > Manual Web Session and paste a
-Cookie header.
+For web-session providers, open Settings > Manual Web Session, pick the
+provider, and import from Edge, Chrome, or Brave. If browser import cannot read
+your session, paste a Cookie header and click Save Cookie.
 
 The bundled CLI backend is:
   CodexBarCLI.exe

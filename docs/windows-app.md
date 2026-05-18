@@ -76,7 +76,8 @@ registration, install folder, launch-at-sign-in entry, and app settings unless
 - usage refresh through the CLI backend
 - provider selection with an `enabled` scope that mirrors config
 - embedded API-key setup controls backed by Windows Credential Manager
-- embedded manual Cookie header setup for web-session providers
+- embedded web-session setup with Edge, Chrome, and Brave cookie import plus
+  manual Cookie header fallback
 - CLI path override
 - embedded settings for refresh scope, refresh interval, startup behavior, and
   provider setup
@@ -93,10 +94,11 @@ the tray app injects the provider-specific environment variable into bundled
 CLI runs. The provider toggle is still written through `CodexBarCLI.exe config
 enable`.
 
-For web-session providers, use `Settings` > `Manual Web Session` to save a
-manual Cookie header through `CodexBarCLI.exe config set-cookie --stdin`. This
-is the Windows bridge until native Edge/Chrome/Firefox cookie import is
-implemented.
+For web-session providers, use `Settings` > `Manual Web Session`, choose the
+provider, and import a signed-in session from Edge, Chrome, or Brave. The app
+reads Chromium cookie stores through Windows DPAPI, then saves the result
+through `CodexBarCLI.exe config set-cookie --stdin`. If browser import cannot
+read the session, paste a Cookie header and click `Save Cookie`.
 
 The tray app defaults to the `enabled` provider scope. Use the compact provider
 switcher at the top of Usage for quick scope changes. When a key is saved from
