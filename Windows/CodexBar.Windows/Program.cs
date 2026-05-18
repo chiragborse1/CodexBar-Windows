@@ -16,6 +16,16 @@ internal static class Program
             return SmokeTest.Run();
         }
 
+        if (args.Contains("--pty-bridge", StringComparer.OrdinalIgnoreCase))
+        {
+            return PtyBridge.RunFromStandardInput();
+        }
+
+        if (args.Contains("--pty-bridge-smoke-test", StringComparer.OrdinalIgnoreCase))
+        {
+            return PtyBridge.SmokeTest();
+        }
+
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);

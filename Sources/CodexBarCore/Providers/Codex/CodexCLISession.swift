@@ -31,9 +31,30 @@ actor CodexCLISession {
         binary: String,
         options: CaptureOptions) async throws -> String
     {
-        _ = binary
-        _ = options
-        throw SessionError.launchFailed("Codex CLI PTY sessions are not supported on Windows yet.")
+        let runnerOptions = TTYCommandRunner.Options(
+            rows: options.rows,
+            cols: options.cols,
+            timeout: options.timeout,
+            workingDirectory: options.workingDirectory,
+            extraArgs: options.extraArgs,
+            baseEnvironment: options.environment,
+            forceCodexStatusMode: true)
+        do {
+            return try TTYCommandRunner()
+                .run(binary: binary, send: "/status", options: runnerOptions)
+                .text
+        } catch let error as TTYCommandRunner.Error {
+            switch error {
+            case let .launchFailed(message):
+                throw SessionError.launchFailed(message)
+            case .timedOut:
+                throw SessionError.timedOut
+            case let .binaryNotFound(tool):
+                throw SessionError.launchFailed("Missing CLI '\(tool)'. Install it or add it to PATH.")
+            }
+        } catch {
+            throw SessionError.launchFailed(error.localizedDescription)
+        }
     }
 
     func reset() {}

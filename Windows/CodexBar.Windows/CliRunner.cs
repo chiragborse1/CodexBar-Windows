@@ -145,6 +145,11 @@ internal sealed class CliRunner
             WorkingDirectory = Path.GetDirectoryName(executable) ?? AppContext.BaseDirectory,
         };
         startInfo.Environment["CODEXBAR_CONFIG"] = ConfigLocator.ConfigPath;
+        var ptyBridge = Path.Combine(AppContext.BaseDirectory, $"{AppInfo.DisplayName}.exe");
+        if (File.Exists(ptyBridge))
+        {
+            startInfo.Environment["CODEXBAR_PTY_BRIDGE"] = ptyBridge;
+        }
         ProviderSecretEnvironment.ApplyStoredCredentials(startInfo.Environment);
 
         foreach (var argument in arguments)

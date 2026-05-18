@@ -50,15 +50,49 @@ actor ClaudeCLISession {
         settleAfterStop: TimeInterval = 0.25,
         sendEnterEvery: TimeInterval? = nil) async throws -> String
     {
-        _ = subcommand
-        _ = binary
-        _ = timeout
-        _ = idleTimeout
-        _ = stopOnSubstrings
         _ = stopWhenNormalized
-        _ = settleAfterStop
-        _ = sendEnterEvery
-        throw SessionError.launchFailed("Claude CLI PTY sessions are not supported on Windows yet.")
+
+        var sendOnSubstrings: [String: String] = [
+            "Do you trust the files in this folder?": "y\r",
+            "Quick safety check:": "\r",
+            "Yes, I trust this folder": "\r",
+            "Ready to code here?": "\r",
+            "Press Enter to continue": "\r",
+        ]
+        switch subcommand.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "/usage":
+            sendOnSubstrings["Show plan"] = "\r"
+            sendOnSubstrings["Show plan usage limits"] = "\r"
+        case "/status":
+            sendOnSubstrings["Show Claude Code"] = "\r"
+            sendOnSubstrings["Show Claude Code status"] = "\r"
+        default:
+            break
+        }
+
+        let runnerOptions = TTYCommandRunner.Options(
+            timeout: timeout,
+            idleTimeout: idleTimeout,
+            sendEnterEvery: sendEnterEvery,
+            sendOnSubstrings: sendOnSubstrings,
+            stopOnSubstrings: stopOnSubstrings,
+            settleAfterStop: settleAfterStop)
+        do {
+            return try TTYCommandRunner()
+                .run(binary: binary, send: subcommand, options: runnerOptions)
+                .text
+        } catch let error as TTYCommandRunner.Error {
+            switch error {
+            case let .launchFailed(message):
+                throw SessionError.launchFailed(message)
+            case .timedOut:
+                throw SessionError.timedOut
+            case let .binaryNotFound(tool):
+                throw SessionError.launchFailed("Missing CLI '\(tool)'. Install it or add it to PATH.")
+            }
+        } catch {
+            throw SessionError.launchFailed(error.localizedDescription)
+        }
     }
 
     func reset() {}

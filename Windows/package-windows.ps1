@@ -134,6 +134,11 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+& (Join-Path $packageDir "CodexBar-Windows.exe") --pty-bridge-smoke-test
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+
 Invoke-IsolatedCliVersion $packageDir
 
 $asset = "CodexBar-Windows-$safeRef-windows-x86_64.zip"

@@ -75,7 +75,7 @@ private enum TTYCommandRunnerActiveProcessRegistry {
     }
 }
 
-/// Windows placeholder for the POSIX PTY runner. ConPTY support will replace this stub.
+/// Windows PTY runner backed by the packaged .NET ConPTY bridge.
 public struct TTYCommandRunner {
     public struct Result: Sendable {
         public let text: String
@@ -285,13 +285,177 @@ public struct TTYCommandRunner {
         options: Options = Options(),
         onURLDetected: (@Sendable () -> Void)? = nil) throws -> Result
     {
-        _ = script
-        _ = options
-        _ = onURLDetected
-        guard FileManager.default.isExecutableFile(atPath: binary) || Self.which(binary) != nil else {
+        let resolved: String
+        if FileManager.default.isExecutableFile(atPath: binary) {
+            resolved = binary
+        } else if let hit = Self.which(binary) {
+            resolved = hit
+        } else {
             throw Error.binaryNotFound(binary)
         }
-        throw Error.launchFailed("PTY sessions are not supported on Windows yet.")
+
+        guard let bridge = Self.resolvePTYBridgeExecutable() else {
+            throw Error.launchFailed(
+                "Windows PTY bridge was not found. Put CodexBar-Windows.exe beside CodexBarCLI.exe " +
+                    "or set CODEXBAR_PTY_BRIDGE.")
+        }
+
+        let baseEnv = options.baseEnvironment ?? ProcessInfo.processInfo.environment
+        let environment = Self.enrichedEnvironment(baseEnv: baseEnv, home: baseEnv["HOME"] ?? NSHomeDirectory())
+        let request = WindowsPTYBridgeRequest(
+            binary: resolved,
+            arguments: options.extraArgs,
+            script: script,
+            workingDirectory: options.workingDirectory?.path,
+            environment: environment,
+            options: WindowsPTYBridgeOptions(
+                rows: Int(options.rows),
+                cols: Int(options.cols),
+                timeout: options.timeout,
+                idleTimeout: options.idleTimeout,
+                initialDelay: options.initialDelay,
+                sendEnterEvery: options.sendEnterEvery,
+                sendOnSubstrings: options.sendOnSubstrings,
+                stopOnUrl: options.stopOnURL,
+                stopOnSubstrings: options.stopOnSubstrings,
+                settleAfterStop: options.settleAfterStop,
+                forceCodexStatusMode: options.forceCodexStatusMode))
+
+        let requestData: Data
+        do {
+            requestData = try JSONEncoder().encode(request)
+        } catch {
+            throw Error.launchFailed("Failed to encode PTY request: \(error.localizedDescription)")
+        }
+
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: bridge)
+        proc.arguments = ["--pty-bridge"]
+        proc.environment = ProcessInfo.processInfo.environment
+
+        let inputPipe = Pipe()
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        proc.standardInput = inputPipe
+        proc.standardOutput = outputPipe
+        proc.standardError = errorPipe
+
+        do {
+            try proc.run()
+        } catch {
+            throw Error.launchFailed("Failed to launch PTY bridge: \(error.localizedDescription)")
+        }
+
+        inputPipe.fileHandleForWriting.write(requestData)
+        try? inputPipe.fileHandleForWriting.close()
+
+        let deadline = Date().addingTimeInterval(max(options.timeout + 8.0, 10.0))
+        while proc.isRunning, Date() < deadline {
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+        if proc.isRunning {
+            proc.terminate()
+            proc.waitUntilExit()
+            throw Error.timedOut
+        }
+
+        let output = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        let stderr = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        if proc.terminationStatus != 0, output.isEmpty {
+            let message = String(data: stderr, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let detail = (message?.isEmpty == false) ? message ?? "PTY bridge failed." : "PTY bridge failed."
+            throw Error.launchFailed(detail)
+        }
+
+        let response: WindowsPTYBridgeResponse
+        do {
+            response = try JSONDecoder().decode(WindowsPTYBridgeResponse.self, from: output)
+        } catch {
+            let raw = String(data: output, encoding: .utf8) ?? ""
+            throw Error.launchFailed("Invalid PTY bridge response: \(raw)")
+        }
+
+        guard response.ok else {
+            throw Error.launchFailed(response.error ?? "PTY bridge failed.")
+        }
+
+        if !response.text.isEmpty, response.text.contains("https://") || response.text.contains("http://") {
+            onURLDetected?()
+        }
+        return Result(text: response.text)
+    }
+
+    private struct WindowsPTYBridgeRequest: Encodable {
+        let binary: String
+        let arguments: [String]
+        let script: String
+        let workingDirectory: String?
+        let environment: [String: String]
+        let options: WindowsPTYBridgeOptions
+    }
+
+    private struct WindowsPTYBridgeOptions: Encodable {
+        let rows: Int
+        let cols: Int
+        let timeout: TimeInterval
+        let idleTimeout: TimeInterval?
+        let initialDelay: TimeInterval
+        let sendEnterEvery: TimeInterval?
+        let sendOnSubstrings: [String: String]
+        let stopOnUrl: Bool
+        let stopOnSubstrings: [String]
+        let settleAfterStop: TimeInterval
+        let forceCodexStatusMode: Bool
+    }
+
+    private struct WindowsPTYBridgeResponse: Decodable {
+        let ok: Bool
+        let text: String
+        let error: String?
+    }
+
+    private static func resolvePTYBridgeExecutable() -> String? {
+        let env = ProcessInfo.processInfo.environment
+        let fileManager = FileManager.default
+
+        func usable(_ path: String?) -> String? {
+            guard let path, !path.isEmpty else { return nil }
+            return fileManager.fileExists(atPath: path) ? path : nil
+        }
+
+        if let override = usable(env["CODEXBAR_PTY_BRIDGE"]) {
+            return override
+        }
+
+        func candidate(in directory: String, name: String) -> String? {
+            usable(self.join(path: directory, component: name))
+        }
+
+        var directories: [String] = []
+        if let argv0 = CommandLine.arguments.first, !argv0.isEmpty {
+            let url: URL
+            if argv0.contains(":") || argv0.hasPrefix("\\") || argv0.hasPrefix("/") {
+                url = URL(fileURLWithPath: argv0)
+            } else {
+                url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+                    .appendingPathComponent(argv0)
+            }
+            directories.append(url.deletingLastPathComponent().path)
+        }
+        directories.append(FileManager.default.currentDirectoryPath)
+
+        for directory in directories {
+            if let found = candidate(in: directory, name: "CodexBar-Windows.exe") {
+                return found
+            }
+            if let found = candidate(in: directory, name: "CodexBarPTYBridge.exe") {
+                return found
+            }
+        }
+
+        return self.findExecutable("CodexBar-Windows.exe", env: env) ??
+            self.findExecutable("CodexBarPTYBridge.exe", env: env)
     }
 
     public static func which(_ tool: String) -> String? {
