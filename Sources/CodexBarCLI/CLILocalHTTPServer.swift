@@ -419,12 +419,13 @@ private func readWindowsRequest(_ socket: SOCKET) -> Result<CLILocalHTTPRequest,
     var sawHeaderEnd = false
 
     while data.count < 16384 {
+        let bufferCapacity = buffer.count
         let count = buffer.withUnsafeMutableBytes { rawBuffer in
             guard let baseAddress = rawBuffer.baseAddress else { return Int32(SOCKET_ERROR) }
             return recv(
                 socket,
                 baseAddress.assumingMemoryBound(to: CChar.self),
-                Int32(buffer.count),
+                Int32(bufferCapacity),
                 0)
         }
         guard count > 0 else { break }
