@@ -11,13 +11,20 @@ internal static class BrowserCookieImporter
     [
         new("edge", "Edge", Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Microsoft", "Edge", "User Data")),
+            "Microsoft", "Edge", "User Data"),
+            BrowserCookieBrowserKind.Chromium),
         new("chrome", "Chrome", Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Google", "Chrome", "User Data")),
+            "Google", "Chrome", "User Data"),
+            BrowserCookieBrowserKind.Chromium),
         new("brave", "Brave", Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "BraveSoftware", "Brave-Browser", "User Data")),
+            "BraveSoftware", "Brave-Browser", "User Data"),
+            BrowserCookieBrowserKind.Chromium),
+        new("firefox", "Firefox", Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Mozilla", "Firefox", "Profiles"),
+            BrowserCookieBrowserKind.Firefox),
     ];
 
     private static readonly BrowserCookieProviderRecipe[] Recipes =
@@ -143,8 +150,10 @@ internal static class BrowserCookieImporter
             return BrowserCookieImportResult.Failed($"{browser.DisplayName} profile data was not found.");
         }
 
-        var masterKey = ReadChromiumMasterKey(browser.UserDataDirectory);
-        var profiles = DiscoverProfiles(browser.UserDataDirectory).ToArray();
+        var masterKey = browser.Kind == BrowserCookieBrowserKind.Chromium
+            ? ReadChromiumMasterKey(browser.UserDataDirectory)
+            : null;
+        var profiles = DiscoverProfiles(browser).ToArray();
         if (profiles.Length == 0)
         {
             return BrowserCookieImportResult.Failed($"{browser.DisplayName} has no readable cookie profiles.");
@@ -158,7 +167,9 @@ internal static class BrowserCookieImporter
             BrowserProfileCookieResult profileResult;
             try
             {
-                profileResult = ReadProfileCookies(browser, profile, recipe, masterKey);
+                profileResult = browser.Kind == BrowserCookieBrowserKind.Firefox
+                    ? ReadFirefoxProfileCookies(browser, profile, recipe)
+                    : ReadChromiumProfileCookies(browser, profile, recipe, masterKey);
             }
             catch
             {
@@ -204,7 +215,12 @@ internal static class BrowserCookieImporter
     private static BrowserCookieProviderRecipe? RecipeFor(string providerId) =>
         Recipes.FirstOrDefault(recipe => string.Equals(recipe.ProviderId, providerId, StringComparison.OrdinalIgnoreCase));
 
-    private static IEnumerable<BrowserProfile> DiscoverProfiles(string userDataDirectory)
+    private static IEnumerable<BrowserProfile> DiscoverProfiles(BrowserCookieBrowser browser) =>
+        browser.Kind == BrowserCookieBrowserKind.Firefox
+            ? DiscoverFirefoxProfiles(browser.UserDataDirectory)
+            : DiscoverChromiumProfiles(browser.UserDataDirectory);
+
+    private static IEnumerable<BrowserProfile> DiscoverChromiumProfiles(string userDataDirectory)
     {
         foreach (var directory in Directory.EnumerateDirectories(userDataDirectory))
         {
@@ -229,6 +245,26 @@ internal static class BrowserCookieImporter
         }
     }
 
+    private static IEnumerable<BrowserProfile> DiscoverFirefoxProfiles(string profilesDirectory)
+    {
+        foreach (var directory in Directory.EnumerateDirectories(profilesDirectory))
+        {
+            var name = Path.GetFileName(directory);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                continue;
+            }
+
+            var cookiesPath = Path.Combine(directory, "cookies.sqlite");
+            if (!File.Exists(cookiesPath))
+            {
+                continue;
+            }
+
+            yield return new BrowserProfile(directory, FirefoxProfileDisplayName(name), cookiesPath);
+        }
+    }
+
     private static bool IsChromiumProfileDirectory(string name) =>
         string.Equals(name, "Default", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(name, "Guest Profile", StringComparison.OrdinalIgnoreCase) ||
@@ -236,6 +272,17 @@ internal static class BrowserCookieImporter
 
     private static string ProfileDisplayName(string name) =>
         string.Equals(name, "Default", StringComparison.OrdinalIgnoreCase) ? "Default" : name;
+
+    private static string FirefoxProfileDisplayName(string name)
+    {
+        var separator = name.IndexOf('.');
+        if (separator >= 0 && separator < name.Length - 1)
+        {
+            return name[(separator + 1)..];
+        }
+
+        return name;
+    }
 
     private static string? ResolveCookiesPath(string profileDirectory)
     {
@@ -288,7 +335,7 @@ internal static class BrowserCookieImporter
         }
     }
 
-    private static BrowserProfileCookieResult ReadProfileCookies(
+    private static BrowserProfileCookieResult ReadChromiumProfileCookies(
         BrowserCookieBrowser browser,
         BrowserProfile profile,
         BrowserCookieProviderRecipe recipe,
@@ -377,6 +424,81 @@ internal static class BrowserCookieImporter
         }
     }
 
+    private static BrowserProfileCookieResult ReadFirefoxProfileCookies(
+        BrowserCookieBrowser browser,
+        BrowserProfile profile,
+        BrowserCookieProviderRecipe recipe)
+    {
+        var tempDirectory = Path.Combine(Path.GetTempPath(), AppInfo.DisplayName, "Cookies", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDirectory);
+
+        try
+        {
+            var copiedDbPath = Path.Combine(tempDirectory, "cookies.sqlite");
+            CopyCookieStore(profile.CookiesPath, copiedDbPath);
+
+            var cookies = new List<BrowserCookieRecord>();
+            using var connection = new SqliteConnection($"Data Source={copiedDbPath};Mode=ReadOnly");
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT host, name, path, value, expiry, isSecure
+                FROM moz_cookies
+                """;
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var host = ReadString(reader, 0);
+                var name = ReadString(reader, 1);
+                if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(name))
+                {
+                    continue;
+                }
+
+                if (!MatchesAnyDomain(host, recipe.Domains))
+                {
+                    continue;
+                }
+
+                var expiresUnix = reader.IsDBNull(4) ? 0 : reader.GetInt64(4);
+                if (IsExpiredUnixCookie(expiresUnix))
+                {
+                    continue;
+                }
+
+                var value = ReadString(reader, 3);
+                if (string.IsNullOrEmpty(value))
+                {
+                    continue;
+                }
+
+                cookies.Add(new BrowserCookieRecord(
+                    Name: name,
+                    Value: value,
+                    Domain: NormalizeDomain(host),
+                    Path: ReadString(reader, 2) ?? "/",
+                    ExpiresUtc: expiresUnix,
+                    IsSecure: !reader.IsDBNull(5) && reader.GetInt32(5) != 0,
+                    SourceLabel: $"{browser.DisplayName} {profile.DisplayName}"));
+            }
+
+            return new BrowserProfileCookieResult(cookies, 0);
+        }
+        finally
+        {
+            try
+            {
+                Directory.Delete(tempDirectory, recursive: true);
+            }
+            catch
+            {
+                // Temporary cookie copies are best-effort cleanup.
+            }
+        }
+    }
+
     private static void CopyCookieStore(string sourcePath, string destinationPath)
     {
         CopyUnlocked(sourcePath, destinationPath);
@@ -438,6 +560,24 @@ internal static class BrowserCookieImporter
         try
         {
             var expires = DateTimeOffset.FromFileTime(expiresUtc * 10);
+            return expires <= DateTimeOffset.UtcNow;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsExpiredUnixCookie(long expiresUnix)
+    {
+        if (expiresUnix <= 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            var expires = DateTimeOffset.FromUnixTimeSeconds(expiresUnix);
             return expires <= DateTimeOffset.UtcNow;
         }
         catch
@@ -631,7 +771,14 @@ internal static class BrowserCookieImporter
 internal sealed record BrowserCookieBrowser(
     string Id,
     string DisplayName,
-    string UserDataDirectory);
+    string UserDataDirectory,
+    BrowserCookieBrowserKind Kind);
+
+internal enum BrowserCookieBrowserKind
+{
+    Chromium,
+    Firefox,
+}
 
 internal sealed record BrowserCookieImportResult(
     bool Succeeded,
