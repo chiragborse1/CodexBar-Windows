@@ -24,8 +24,8 @@ First-time setup:
   4. Return to Usage.
 
 For web-session providers, open Settings > Manual Web Session, pick the
-provider, and import from Edge, Chrome, or Brave. If browser import cannot read
-your session, paste a Cookie header and click Save Cookie.
+provider, and import from Edge, Chrome, Brave, or Firefox. If browser import
+cannot read your session, paste a Cookie header and click Save Cookie.
 
 The bundled CLI backend is:
   CodexBarCLI.exe

@@ -20,8 +20,8 @@ Current build status:
 - Settings saves API keys for Windows-ready providers in Windows Credential
   Manager and injects them into CLI runs.
 - Settings includes a Manual Web Session panel that can import Edge, Chrome,
-  or Brave cookies for supported web-session providers, or accept a pasted
-  Cookie header.
+  Brave, or Firefox cookies for supported web-session providers, or accept a
+  pasted Cookie header.
 - More includes diagnostics, provider compatibility, and a GitHub release
   update check inside the popover.
 - Windows usage no longer fails early just because a provider has a web source;
@@ -35,7 +35,7 @@ Current build status:
 
 Current limitations:
 - CLI-side automatic browser cookie extraction is still stubbed on Windows;
-  use the tray app's Edge/Chrome/Brave import or paste a Cookie header.
+  use the tray app's Edge/Chrome/Brave/Firefox import or paste a Cookie header.
 - PTY-backed Codex and Claude CLI sessions are stubbed on Windows.
 - The localhost HTTP `serve` command is stubbed on Windows.
 - Some macOS charts, provider icons, and animation details are still being
@@ -69,9 +69,9 @@ First-time setup:
 5. The popover focuses that provider and refreshes against it.
 
 For web-session providers, use `Settings` > `Manual Web Session`, select the
-provider, then click `Import Edge`, `Import Chrome`, or `Import Brave`. If the
-browser import cannot read a session, paste a Cookie header and click
-`Save Cookie`.
+provider, then click `Import Edge`, `Import Chrome`, `Import Brave`, or
+`Import Firefox`. If the browser import cannot read a session, paste a Cookie
+header and click `Save Cookie`.
 
 To install it into your user profile and create a Start Menu shortcut:
 
@@ -127,8 +127,7 @@ stored in `%APPDATA%\CodexBar-Windows\config.json`.
 
 1. Keep the Windows tray app and CLI green in CI.
 2. Continue matching the macOS menu-card and settings experience on Windows.
-3. Expand browser profile cookie extraction beyond Edge, Chrome, and Brave to
-   Firefox and additional Chromium variants.
+3. Expand browser profile cookie extraction to additional Chromium variants.
 4. Replace PTY stubs with Windows ConPTY support where provider CLIs require an
    interactive terminal.
 5. Add signed MSIX/WiX installer packaging.

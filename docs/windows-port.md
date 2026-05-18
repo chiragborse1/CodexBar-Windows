@@ -27,14 +27,14 @@ Bring a complete CodexBar-Windows experience to Windows users:
   includes an in-popover provider switcher, and keeps Settings and More
   diagnostics inside the tray surface.
 - Settings saves API keys to Windows Credential Manager, imports Edge, Chrome,
-  and Brave cookies for web-session providers, supports manual Cookie header
-  fallback, and focuses the popover on the configured provider.
+  Brave, and Firefox cookies for web-session providers, supports manual Cookie
+  header fallback, and focuses the popover on the configured provider.
 - More includes diagnostics, provider compatibility, config actions, and a
   GitHub release update check.
 - Windows usage falls through to provider-specific CLI/API/OAuth/manual-cookie
   paths instead of failing early when a provider also has a web source.
 - CLI-side automatic browser-cookie extraction is stubbed on Windows. The
-  Windows tray app can import Edge, Chrome, and Brave Chromium cookie stores
+  Windows tray app can import Edge, Chrome, Brave, and Firefox cookie stores
   into the config-backed manual Cookie header path.
 - PTY-backed interactive provider helpers are stubbed on Windows.
 - The localhost `serve` command is stubbed on Windows while Foundation
@@ -59,8 +59,8 @@ The tray app provides:
 - scheduled refresh loop
 - configurable provider target
 - embedded provider API-key setup backed by Windows Credential Manager
-- embedded web-session setup with Edge, Chrome, and Brave cookie import plus
-  manual Cookie header fallback
+- embedded web-session setup with Edge, Chrome, Brave, and Firefox cookie
+  import plus manual Cookie header fallback
 - CLI path override
 - launch-at-sign-in toggle through the current-user Run registry key
 - app settings in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`
@@ -73,7 +73,7 @@ The tray app provides:
 - JSON and text CLI output.
 - `config validate`, `config dump`, `config providers`, provider enable/disable,
   config-backed manual Cookie headers, and provider setup from the tray app.
-- Edge, Chrome, and Brave cookie import from the tray app for supported
+- Edge, Chrome, Brave, and Firefox cookie import from the tray app for supported
   web-session providers.
 - Local cost commands where their scanner inputs are available.
 - Native tray launch and popover refresh through the bundled CLI.
@@ -83,14 +83,13 @@ The tray app provides:
 - CLI-side OpenAI/Claude web dashboard scraping still needs native Windows
   browser-cookie support.
 - Codex/Claude interactive CLI sessions need ConPTY-backed PTY support.
-- Firefox cookie import and CLI-side automatic browser-cookie import are not
-  implemented yet.
+- CLI-side automatic browser-cookie import is not implemented yet.
 - MSIX/WiX installer packaging, code signing, and automatic update install are
   not implemented yet.
 
 ## Next Steps
 
-1. Add Firefox and additional Chromium browser cookie import.
+1. Add additional Chromium browser cookie import.
 2. Add ConPTY support for interactive provider CLIs.
 3. Add `.msix` or WiX installer packaging.
 4. Add signed release builds and automatic update install.
