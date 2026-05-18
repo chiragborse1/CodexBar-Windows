@@ -26,16 +26,17 @@ Bring a complete CodexBar-Windows experience to Windows users:
 - The tray popover parses CLI JSON into compact menu-style provider cards,
   includes an in-popover provider switcher, and keeps Settings and More
   diagnostics inside the tray surface.
-- Settings saves API keys to Windows Credential Manager, imports Edge, Chrome,
-  Brave, and Firefox cookies for web-session providers, supports manual Cookie
-  header fallback, and focuses the popover on the configured provider.
+- Settings saves API keys to Windows Credential Manager, imports Edge,
+  Chrome/Chromium, Brave, Vivaldi, Opera, and Firefox cookies for web-session
+  providers, supports manual Cookie header fallback, and focuses the popover on
+  the configured provider.
 - More includes diagnostics, provider compatibility, config actions, and a
   GitHub release update check.
 - Windows usage falls through to provider-specific CLI/API/OAuth/manual-cookie
   paths instead of failing early when a provider also has a web source.
 - CLI-side automatic browser-cookie extraction is stubbed on Windows. The
-  Windows tray app can import Edge, Chrome, Brave, and Firefox cookie stores
-  into the config-backed manual Cookie header path.
+  Windows tray app can import supported Windows browser cookie stores into the
+  config-backed manual Cookie header path.
 - PTY-backed interactive provider helpers are stubbed on Windows.
 - The localhost `serve` command is stubbed on Windows while Foundation
   networking portability is completed.
@@ -59,8 +60,8 @@ The tray app provides:
 - scheduled refresh loop
 - configurable provider target
 - embedded provider API-key setup backed by Windows Credential Manager
-- embedded web-session setup with Edge, Chrome, Brave, and Firefox cookie
-  import plus manual Cookie header fallback
+- embedded web-session setup with Edge, Chrome/Chromium, Brave, Vivaldi,
+  Opera, and Firefox cookie import plus manual Cookie header fallback
 - CLI path override
 - launch-at-sign-in toggle through the current-user Run registry key
 - app settings in `%APPDATA%\CodexBar-Windows\windows-app-settings.json`
@@ -73,8 +74,8 @@ The tray app provides:
 - JSON and text CLI output.
 - `config validate`, `config dump`, `config providers`, provider enable/disable,
   config-backed manual Cookie headers, and provider setup from the tray app.
-- Edge, Chrome, Brave, and Firefox cookie import from the tray app for supported
-  web-session providers.
+- supported Windows browser cookie import from the tray app for web-session
+  providers.
 - Local cost commands where their scanner inputs are available.
 - Native tray launch and popover refresh through the bundled CLI.
 
@@ -89,7 +90,7 @@ The tray app provides:
 
 ## Next Steps
 
-1. Add additional Chromium browser cookie import.
+1. Move selected browser imports into CLI-side automatic provider fallback.
 2. Add ConPTY support for interactive provider CLIs.
 3. Add `.msix` or WiX installer packaging.
 4. Add signed release builds and automatic update install.

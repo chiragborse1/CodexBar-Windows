@@ -35,10 +35,10 @@ commandcode, stepfun, grok
 Use API keys, imported browser cookies, manual cookies, or provider-specific
 environment variables where those modes exist. The Windows CLI now lets
 provider-specific fallbacks run instead of rejecting a provider early just
-because it has a web source. The tray app can import Edge, Chrome, Brave, and
-Firefox cookies into the manual Cookie header path for supported web-session
-providers. CLI-side automatic browser-cookie import and ConPTY-backed
-interactive sessions are tracked in [windows-port.md](windows-port.md).
+because it has a web source. The tray app can import supported Windows browser
+cookies into the manual Cookie header path for supported web-session providers.
+CLI-side automatic browser-cookie import and ConPTY-backed interactive sessions
+are tracked in [windows-port.md](windows-port.md).
 
 ## Provider IDs
 
