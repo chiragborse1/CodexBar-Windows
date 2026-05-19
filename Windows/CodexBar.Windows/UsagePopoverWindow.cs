@@ -446,16 +446,17 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
     private Wpf.FrameworkElement BuildProviderSetupSection()
     {
+        var apiKeyProviders = ProviderCatalog.ApiKeyEntries
+            .Select(entry => new ProviderChoice(entry.Id, entry.DisplayName))
+            .ToArray();
         var setupProviderBox = new WpfControls.ComboBox
         {
             MinHeight = 30,
             FontSize = 11.5,
             Background = Brush("#F5F5F7"),
             BorderBrush = Brush("#D8D8DD"),
-            ItemsSource = ProviderCatalog.ApiKeyEntries
-                .Select(entry => new ProviderChoice(entry.Id, entry.DisplayName))
-                .ToArray(),
-            SelectedIndex = 0,
+            ItemsSource = apiKeyProviders,
+            SelectedItem = PreferredProviderChoice(apiKeyProviders),
         };
         var apiKeyBox = new WpfControls.PasswordBox
         {
@@ -618,16 +619,17 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
     private Wpf.FrameworkElement BuildCookieSetupSection()
     {
+        var cookieProviders = ProviderCatalog.CookieEntries
+            .Select(entry => new ProviderChoice(entry.Id, entry.DisplayName))
+            .ToArray();
         var providerBox = new WpfControls.ComboBox
         {
             MinHeight = 30,
             FontSize = 11.5,
             Background = Brush("#F5F5F7"),
             BorderBrush = Brush("#D8D8DD"),
-            ItemsSource = ProviderCatalog.CookieEntries
-                .Select(entry => new ProviderChoice(entry.Id, entry.DisplayName))
-                .ToArray(),
-            SelectedIndex = 0,
+            ItemsSource = cookieProviders,
+            SelectedItem = PreferredProviderChoice(cookieProviders),
         };
         var cookieBox = new WpfControls.TextBox
         {
@@ -1177,6 +1179,29 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             .ThenBy(row => row.DisplayName)
             .Select(row => row.Provider)
             .FirstOrDefault(provider => ProviderCatalog.DashboardUrlFor(provider) is not null);
+    }
+
+    private ProviderChoice? PreferredProviderChoice(IReadOnlyList<ProviderChoice> choices)
+    {
+        var selected = choices.FirstOrDefault(choice =>
+            string.Equals(choice.Id, settings.Provider, StringComparison.OrdinalIgnoreCase));
+        if (selected is not null)
+        {
+            return selected;
+        }
+
+        var visible = lastRows
+            .OrderBy(RowSortRank)
+            .Select(row => row.Provider)
+            .FirstOrDefault(provider => choices.Any(choice =>
+                string.Equals(choice.Id, provider, StringComparison.OrdinalIgnoreCase)));
+        if (!string.IsNullOrWhiteSpace(visible))
+        {
+            return choices.First(choice =>
+                string.Equals(choice.Id, visible, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return choices.FirstOrDefault();
     }
 
     private Wpf.FrameworkElement MenuActionRow(string title, string subtitle, Action action) =>
