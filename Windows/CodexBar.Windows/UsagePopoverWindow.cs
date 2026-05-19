@@ -28,7 +28,11 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     private AppSettings settings;
     private CliRunner cliRunner;
 
-    public UsagePopoverWindow(AppSettings settings, CliRunner cliRunner)
+    public UsagePopoverWindow(
+        AppSettings settings,
+        CliRunner cliRunner,
+        bool showInTaskbar = false,
+        bool hideOnDeactivate = true)
     {
         this.settings = settings;
         this.cliRunner = cliRunner;
@@ -42,10 +46,13 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         WindowStyle = Wpf.WindowStyle.None;
         AllowsTransparency = true;
         Background = WpfMedia.Brushes.Transparent;
-        ShowInTaskbar = false;
+        ShowInTaskbar = showInTaskbar;
         Topmost = true;
         FontFamily = new WpfMedia.FontFamily("Segoe UI");
-        Deactivated += (_, _) => Hide();
+        if (hideOnDeactivate)
+        {
+            Deactivated += (_, _) => Hide();
+        }
 
         var root = new WpfControls.Border
         {
@@ -119,6 +126,16 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var y = Math.Min(Forms.Cursor.Position.Y + 12, area.Bottom - Height - 10);
         Left = Math.Max(area.Left + 10, x);
         Top = Math.Max(area.Top + 10, y);
+        Show();
+        Activate();
+        _ = RefreshUsageAsync();
+    }
+
+    public void ShowCentered()
+    {
+        var area = Forms.Screen.PrimaryScreen?.WorkingArea ?? Forms.Screen.FromPoint(Forms.Cursor.Position).WorkingArea;
+        Left = area.Left + Math.Max(10, (area.Width - Width) / 2);
+        Top = area.Top + Math.Max(10, (area.Height - Height) / 2);
         Show();
         Activate();
         _ = RefreshUsageAsync();

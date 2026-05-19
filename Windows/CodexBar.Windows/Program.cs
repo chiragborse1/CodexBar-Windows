@@ -30,7 +30,10 @@ internal static class Program
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 
-        using var context = new TrayApplicationContext();
+        var forceWindow = args.Contains("--window", StringComparer.OrdinalIgnoreCase) ||
+            args.Contains("--foreground", StringComparer.OrdinalIgnoreCase) ||
+            args.Contains("--show-window", StringComparer.OrdinalIgnoreCase);
+        using var context = new TrayApplicationContext(forceWindow);
         Application.Run(context);
         return 0;
     }

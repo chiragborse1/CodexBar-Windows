@@ -4,12 +4,14 @@ internal sealed class TrayApplicationContext : ApplicationContext
 {
     private readonly NotifyIcon notifyIcon;
     private readonly System.Windows.Forms.Timer refreshTimer;
+    private readonly bool forceWindow;
     private AppSettings settings;
     private CliRunner cliRunner;
     private UsagePopoverWindow? popover;
 
-    public TrayApplicationContext()
+    public TrayApplicationContext(bool forceWindow = false)
     {
+        this.forceWindow = forceWindow;
         settings = AppSettings.Load();
         cliRunner = new CliRunner(settings);
 
@@ -33,10 +35,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
         refreshTimer.Tick += async (_, _) => await RefreshUsageAsync();
         ApplyTimerInterval();
 
-        if (!Environment.GetCommandLineArgs().Contains("--minimized", StringComparer.OrdinalIgnoreCase) &&
-            !settings.StartMinimized)
+        if (forceWindow ||
+            (!Environment.GetCommandLineArgs().Contains("--minimized", StringComparer.OrdinalIgnoreCase) &&
+             !settings.StartMinimized))
         {
-            ShowPopover();
+            ShowInitialPopoverAfterMessageLoopStarts();
         }
     }
 
@@ -69,16 +72,47 @@ internal sealed class TrayApplicationContext : ApplicationContext
         return menu;
     }
 
-    private void ShowPopover()
+    private void ShowInitialPopoverAfterMessageLoopStarts()
     {
-        if (popover is null || popover.IsClosed)
+        var timer = new System.Windows.Forms.Timer
         {
-            popover = new UsagePopoverWindow(settings, cliRunner);
+            Interval = 150,
+        };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            timer.Dispose();
+            ShowPopover(forceWindow);
+        };
+        timer.Start();
+    }
+
+    private void ShowPopover(bool asWindow = false)
+    {
+        if (popover is null || popover.IsClosed || (asWindow && !popover.ShowInTaskbar))
+        {
+            if (popover is not null && !popover.IsClosed)
+            {
+                popover.Close();
+            }
+
+            popover = new UsagePopoverWindow(
+                settings,
+                cliRunner,
+                showInTaskbar: asWindow,
+                hideOnDeactivate: !asWindow);
             popover.SettingsChanged += (_, args) => ApplySettings(args.Settings, showBalloon: false);
             popover.Closed += (_, _) => popover = null;
         }
 
-        popover.ShowNearCursor();
+        if (asWindow)
+        {
+            popover.ShowCentered();
+        }
+        else
+        {
+            popover.ShowNearCursor();
+        }
     }
 
     private void ShowSettingsInPopover()
