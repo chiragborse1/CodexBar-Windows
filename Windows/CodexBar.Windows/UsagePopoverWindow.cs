@@ -370,6 +370,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     private Wpf.FrameworkElement BuildSettingsView()
     {
         var root = ViewStack();
+        root.Children.Add(BuildSetupStatusSection());
 
         var scopeBox = new WpfControls.ComboBox
         {
@@ -443,6 +444,65 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         root.Children.Add(BuildProviderSetupSection());
         root.Children.Add(BuildCookieSetupSection());
         return root;
+    }
+
+    private Wpf.FrameworkElement BuildSetupStatusSection()
+    {
+        var provider = settings.Provider;
+        var cliPath = cliRunner.ResolveExecutable();
+        var content = new WpfControls.StackPanel();
+        content.Children.Add(StatusRow(
+            "CLI backend",
+            string.IsNullOrWhiteSpace(cliPath) ? "Missing" : "Found",
+            string.IsNullOrWhiteSpace(cliPath)
+                ? $"Set the CLI path or keep {AppInfo.CliFileName} beside the app."
+                : cliPath,
+            string.IsNullOrWhiteSpace(cliPath) ? "Error" : "Ready"));
+
+        content.Children.Add(StatusRow(
+            "Provider scope",
+            IsBroadProviderScope(provider) ? ProviderCatalog.DisplayNameFor(provider) : "Selected",
+            IsBroadProviderScope(provider)
+                ? "Queries configured providers."
+                : $"{ProviderCatalog.DisplayNameFor(provider)} - {ProviderCatalog.NotesFor(provider)}",
+            IsBroadProviderScope(provider) ? "Info" : ProviderCatalog.SupportFor(provider)));
+
+        if (!IsBroadProviderScope(provider))
+        {
+            if (ProviderCatalog.SupportsConfigApiKey(provider))
+            {
+                var hasKey = WindowsCredentialStore.HasApiKey(provider);
+                content.Children.Add(StatusRow(
+                    "API key",
+                    hasKey ? "Stored" : "Needed",
+                    hasKey
+                        ? "Stored in Windows Credential Manager."
+                        : "Save a key below to enable API-backed usage.",
+                    hasKey ? "Ready" : "Setup"));
+            }
+
+            if (ProviderCatalog.SupportsBrowserSession(provider))
+            {
+                content.Children.Add(StatusRow(
+                    "Browser session",
+                    "Available",
+                    "Use Manual Web Session below if this provider needs a signed-in browser session.",
+                    "Info"));
+            }
+        }
+
+        var more = SecondaryButton("More");
+        more.Click += (_, _) => ShowDiagnosticsView();
+        var config = SecondaryButton("Open Config");
+        config.Click += (_, _) => ConfigLocator.OpenConfigFile();
+        content.Children.Add(ActionRow(more, config));
+
+        return SectionCard(
+            demoMode ? "Demo Status" : "Setup Status",
+            demoMode
+                ? "The app is running with local demo data; real provider checks are skipped."
+                : "Current Windows readiness for the selected provider scope.",
+            content);
     }
 
     private Wpf.FrameworkElement BuildProviderSetupSection()
@@ -1702,6 +1762,57 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         WpfControls.Grid.SetColumn(right, 1);
         grid.Children.Add(left);
         grid.Children.Add(right);
+        return grid;
+    }
+
+    private static Wpf.FrameworkElement StatusRow(string label, string value, string detail, string status)
+    {
+        var grid = new WpfControls.Grid
+        {
+            Margin = new Wpf.Thickness(0, 7, 0, 0),
+        };
+        grid.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = new Wpf.GridLength(1, Wpf.GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new WpfControls.ColumnDefinition { Width = Wpf.GridLength.Auto });
+
+        var text = new WpfControls.StackPanel();
+        text.Children.Add(new WpfControls.TextBlock
+        {
+            Text = label,
+            FontSize = 11.8,
+            FontWeight = Wpf.FontWeights.SemiBold,
+            Foreground = Brush("#1D1D1F"),
+            TextTrimming = Wpf.TextTrimming.CharacterEllipsis,
+        });
+        text.Children.Add(new WpfControls.TextBlock
+        {
+            Text = detail,
+            FontSize = 10.7,
+            Foreground = Brush("#6E6E73"),
+            TextWrapping = Wpf.TextWrapping.Wrap,
+            Margin = new Wpf.Thickness(0, 1, 12, 0),
+        });
+        WpfControls.Grid.SetColumn(text, 0);
+        grid.Children.Add(text);
+
+        var foreground = status switch
+        {
+            "Ready" => Brush("#15803D"),
+            "Setup" => Brush("#8A5A00"),
+            "Error" => Brush("#B42318"),
+            "Partial" => Brush("#8A5A00"),
+            _ => Brush("#4B5563"),
+        };
+        var background = status switch
+        {
+            "Ready" => Brush("#DCFCE7"),
+            "Setup" => Brush("#FEF3C7"),
+            "Error" => Brush("#FEE4E2"),
+            "Partial" => Brush("#FEF3C7"),
+            _ => Brush("#E2E8F0"),
+        };
+        var pill = StatusPill(value, foreground, background);
+        WpfControls.Grid.SetColumn(pill, 1);
+        grid.Children.Add(pill);
         return grid;
     }
 
