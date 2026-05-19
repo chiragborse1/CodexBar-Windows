@@ -1314,32 +1314,73 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             Margin = new Wpf.Thickness(0, 2, 0, 0),
         };
 
+        var contextualRows = 0;
+        var actionProvider = ProviderForMenuActions();
+        if (!string.IsNullOrWhiteSpace(actionProvider) && ProviderSupportsSetupAction(actionProvider))
+        {
+            var label = HasAccountInfo(actionProvider) ? "Switch Account..." : "Add Account...";
+            stack.Children.Add(MenuActionRow(
+                label,
+                $"Open setup for {ProviderCatalog.DisplayNameFor(actionProvider)}.",
+                () => ShowProviderSetup(actionProvider)));
+            contextualRows++;
+        }
+
+        if (!string.IsNullOrWhiteSpace(actionProvider) &&
+            ProviderCatalog.DashboardUrlFor(actionProvider) is { } dashboardUrl)
+        {
+            stack.Children.Add(MenuActionRow(
+                "Usage Dashboard",
+                $"Open {ProviderCatalog.DisplayNameFor(actionProvider)} usage in your browser.",
+                () => OpenUrl(dashboardUrl)));
+            contextualRows++;
+        }
+
+        if (!string.IsNullOrWhiteSpace(actionProvider) &&
+            ProviderCatalog.StatusUrlFor(actionProvider) is { } statusUrl)
+        {
+            stack.Children.Add(MenuActionRow(
+                "Status Page",
+                $"Open {ProviderCatalog.DisplayNameFor(actionProvider)} service status.",
+                () => OpenUrl(statusUrl)));
+            contextualRows++;
+        }
+
+        if (!string.IsNullOrWhiteSpace(actionProvider) &&
+            ProviderCatalog.ChangelogUrlFor(actionProvider) is { } changelogUrl)
+        {
+            stack.Children.Add(MenuActionRow(
+                "Changelog",
+                $"Open {ProviderCatalog.DisplayNameFor(actionProvider)} changelog.",
+                () => OpenUrl(changelogUrl)));
+            contextualRows++;
+        }
+
+        if (StatusLineForMenuActions(actionProvider) is { } statusLine)
+        {
+            stack.Children.Add(MenuTextRow(statusLine));
+            contextualRows++;
+        }
+
+        if (contextualRows > 0)
+        {
+            stack.Children.Add(MenuDivider(new Wpf.Thickness(0, 4, 0, 4)));
+        }
+
         stack.Children.Add(MenuActionRow("Refresh", "Reload usage from the bundled CLI.", (Func<Task>)(async () =>
         {
             ShowUsageView();
             await RefreshUsageAsync();
         })));
-        if (DashboardProviderForActions() is { } dashboardProvider &&
-            ProviderCatalog.DashboardUrlFor(dashboardProvider) is { } dashboardUrl)
-        {
-            stack.Children.Add(MenuActionRow(
-                $"Open {ProviderCatalog.DisplayNameFor(dashboardProvider)} Dashboard",
-                "Open the provider account or usage page in your browser.",
-                () => OpenUrl(dashboardUrl)));
-        }
-        stack.Children.Add(MenuActionRow("Settings", "Provider scope, API keys, web sessions.", () => ShowSettingsView()));
-        stack.Children.Add(MenuActionRow("More", "Diagnostics, updates, raw CLI output.", () => ShowDiagnosticsView()));
-        stack.Children.Add(MenuActionRow("Open Config File", "Edit the local provider config.", () => ConfigLocator.OpenConfigFile()));
-        stack.Children.Add(MenuActionRow("Open Config Folder", "Open the CodexBar-Windows config folder.", () => ConfigLocator.OpenConfigFolder()));
+        stack.Children.Add(MenuActionRow("Settings...", "Provider scope, API keys, web sessions.", () => ShowSettingsView()));
         stack.Children.Add(MenuActionRow("About CodexBar", "Version, update, and project details.", () => ShowDiagnosticsView()));
         stack.Children.Add(MenuActionRow("Quit", "Exit CodexBar-Windows.", Forms.Application.Exit));
         return stack;
     }
 
-    private string? DashboardProviderForActions()
+    private string? ProviderForMenuActions()
     {
-        if (!IsBroadProviderScope(settings.Provider) &&
-            ProviderCatalog.DashboardUrlFor(settings.Provider) is not null)
+        if (!IsBroadProviderScope(settings.Provider))
         {
             return settings.Provider;
         }
@@ -1348,7 +1389,40 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             .OrderBy(RowSortRank)
             .ThenBy(row => row.DisplayName)
             .Select(row => row.Provider)
-            .FirstOrDefault(provider => ProviderCatalog.DashboardUrlFor(provider) is not null);
+            .FirstOrDefault(provider => !string.IsNullOrWhiteSpace(provider) && !IsBroadProviderScope(provider));
+    }
+
+    private void ShowProviderSetup(string provider)
+    {
+        settings.Provider = provider;
+        SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+        ShowSettingsView();
+    }
+
+    private bool HasAccountInfo(string provider) =>
+        lastRows.Any(row =>
+            string.Equals(row.Provider, provider, StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(row.Account));
+
+    private static bool ProviderSupportsSetupAction(string provider) =>
+        ProviderCatalog.SupportsConfigApiKey(provider) ||
+        ProviderCatalog.SupportsBrowserSession(provider);
+
+    private string? StatusLineForMenuActions(string? provider)
+    {
+        if (string.IsNullOrWhiteSpace(provider))
+        {
+            return null;
+        }
+
+        var row = lastRows.FirstOrDefault(item =>
+            string.Equals(item.Provider, provider, StringComparison.OrdinalIgnoreCase));
+        if (row is null || string.IsNullOrWhiteSpace(row.Status))
+        {
+            return null;
+        }
+
+        return row.Status;
     }
 
     private ProviderChoice? PreferredProviderChoice(IReadOnlyList<ProviderChoice> choices)
@@ -1380,6 +1454,16 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             action();
             return Task.CompletedTask;
         });
+
+    private static Wpf.FrameworkElement MenuTextRow(string text) =>
+        new WpfControls.TextBlock
+        {
+            Text = text,
+            FontSize = 11,
+            Foreground = Brush("#6E6E73"),
+            TextWrapping = Wpf.TextWrapping.Wrap,
+            Margin = new Wpf.Thickness(12, 4, 12, 2),
+        };
 
     private Wpf.FrameworkElement MenuActionRow(string title, string subtitle, Func<Task> action)
     {

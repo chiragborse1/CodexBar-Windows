@@ -149,29 +149,62 @@ internal static class ProviderCatalog
     public static string? DashboardUrlFor(string id) =>
         id.ToLowerInvariant() switch
         {
-            "codex" => "https://chatgpt.com/codex/settings",
+            "codex" => "https://chatgpt.com/codex/settings/usage",
             "openai" => "https://platform.openai.com/usage",
-            "claude" => "https://console.anthropic.com/settings/usage",
-            "gemini" => "https://aistudio.google.com/usage",
-            "vertexai" => "https://console.cloud.google.com/apis/dashboard",
+            "claude" => "https://console.anthropic.com/settings/billing",
+            "gemini" => "https://gemini.google.com",
+            "vertexai" => "https://console.cloud.google.com/vertex-ai",
             "copilot" => "https://github.com/settings/copilot",
-            "cursor" => "https://www.cursor.com/settings",
-            "opencode" or "opencodego" => "https://opencode.ai/settings",
+            "cursor" => "https://cursor.com/dashboard?tab=usage",
+            "opencode" or "opencodego" => "https://opencode.ai",
             "openrouter" => "https://openrouter.ai/settings/credits",
-            "zai" => "https://bigmodel.cn/usercenter/proj-mgmt/apikeys",
-            "kilo" => "https://kilocode.ai/settings",
+            "zai" => "https://z.ai/manage-apikey/subscription",
+            "kilo" => "https://app.kilo.ai/usage",
             "moonshot" or "kimik2" => "https://platform.moonshot.ai/console/account",
-            "minimax" => "https://platform.minimaxi.com/user-center/basic-information/interface-key",
-            "mistral" => "https://console.mistral.ai/usage",
-            "perplexity" => "https://www.perplexity.ai/settings",
+            "minimax" => "https://platform.minimax.io/user-center/payment/coding-plan?cycle_type=3",
+            "mistral" => "https://admin.mistral.ai/organization/usage",
+            "perplexity" => "https://www.perplexity.ai/account/usage",
             "windsurf" => "https://windsurf.com/subscription/usage",
-            "warp" => "https://app.warp.dev",
-            "elevenlabs" => "https://elevenlabs.io/app/subscription",
+            "warp" => "https://docs.warp.dev/reference/cli/api-keys",
+            "elevenlabs" => "https://elevenlabs.io/app/developers/usage",
             "bedrock" => "https://console.aws.amazon.com/bedrock",
             "deepseek" => "https://platform.deepseek.com/usage",
             "doubao" => "https://console.volcengine.com/ark",
             "venice" => "https://venice.ai/settings/api",
-            "synthetic" => "https://app.synthetic.new/settings",
+            "factory" => "https://app.factory.ai/settings/billing",
+            "abacus" => "https://apps.abacus.ai/chatllm/admin/compute-points-usage",
+            "amp" => "https://ampcode.com/settings",
+            "augment" => "https://app.augmentcode.com/account/subscription",
+            "codebuff" => "https://www.codebuff.com/usage",
+            "commandcode" => "https://commandcode.ai/studio",
+            "crof" => "https://crof.ai/dashboard",
+            "grok" => "https://grok.com/?_s=usage",
+            "kimi" => "https://www.kimi.com/code/console",
+            "manus" => "https://manus.im",
+            "mimo" => "https://platform.xiaomimimo.com/#/console/balance",
+            "ollama" => "https://ollama.com/settings",
+            "stepfun" => "https://platform.stepfun.com/plan-usage",
+            _ => null,
+        };
+
+    public static string? StatusUrlFor(string id) =>
+        id.ToLowerInvariant() switch
+        {
+            "codex" or "openai" => "https://status.openai.com/",
+            "claude" => "https://status.claude.com/",
+            "copilot" => "https://www.githubstatus.com/",
+            "cursor" => "https://status.cursor.com",
+            "factory" => "https://status.factory.ai",
+            _ => null,
+        };
+
+    public static string? ChangelogUrlFor(string id) =>
+        id.ToLowerInvariant() switch
+        {
+            "codex" => "https://github.com/openai/codex/releases",
+            "claude" => "https://github.com/anthropics/claude-code/releases",
+            "gemini" => "https://github.com/google-gemini/gemini-cli/releases",
+            "grok" => "https://x.ai/news",
             _ => null,
         };
 }
