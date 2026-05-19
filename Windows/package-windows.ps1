@@ -9,8 +9,35 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function ConvertTo-FileSystemPath([string] $Value) {
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $Value
+    }
+
+    $fileSystemPrefix = "Microsoft.PowerShell.Core\FileSystem::"
+    if ($Value.StartsWith($fileSystemPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        return $Value.Substring($fileSystemPrefix.Length)
+    }
+
+    return $Value
+}
+
 function Resolve-RepoRoot {
-    return (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+    $resolved = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
+    return ConvertTo-FileSystemPath $resolved.ProviderPath
+}
+
+function Resolve-OutputRoot([string] $RepoRoot, [string] $Value) {
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        $Value = Join-Path $RepoRoot "artifacts"
+    }
+
+    $fileSystemValue = ConvertTo-FileSystemPath $Value
+    if ([System.IO.Path]::IsPathRooted($fileSystemValue)) {
+        return [System.IO.Path]::GetFullPath($fileSystemValue)
+    }
+
+    return [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $fileSystemValue))
 }
 
 function Get-SafeRef([string] $Tag) {
@@ -76,12 +103,7 @@ function Invoke-IsolatedCliVersion([string] $PackageDir) {
 $repoRoot = Resolve-RepoRoot
 $safeRef = Get-SafeRef $ReleaseTag
 $version = Get-VersionText $safeRef
-if ([System.IO.Path]::IsPathRooted($OutputRoot)) {
-    $outputRootPath = [System.IO.Path]::GetFullPath($OutputRoot)
-}
-else {
-    $outputRootPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $OutputRoot))
-}
+$outputRootPath = Resolve-OutputRoot $repoRoot $OutputRoot
 $packageDir = Join-Path $outputRootPath "codexbar-windows-x86_64"
 $projectPath = Join-Path $repoRoot "Windows\CodexBar.Windows\CodexBar.Windows.csproj"
 

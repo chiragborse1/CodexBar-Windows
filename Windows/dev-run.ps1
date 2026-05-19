@@ -18,8 +18,22 @@ function Write-Step([string] $Message) {
     Write-Host "==> $Message"
 }
 
+function ConvertTo-FileSystemPath([string] $Value) {
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $Value
+    }
+
+    $fileSystemPrefix = "Microsoft.PowerShell.Core\FileSystem::"
+    if ($Value.StartsWith($fileSystemPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        return $Value.Substring($fileSystemPrefix.Length)
+    }
+
+    return $Value
+}
+
 function Resolve-RepoRoot {
-    return (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+    $resolved = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
+    return ConvertTo-FileSystemPath $resolved.ProviderPath
 }
 
 function Resolve-OutputRoot([string] $RepoRoot, [string] $Value) {
@@ -27,11 +41,12 @@ function Resolve-OutputRoot([string] $RepoRoot, [string] $Value) {
         $Value = Join-Path $RepoRoot "artifacts"
     }
 
-    if ([System.IO.Path]::IsPathRooted($Value)) {
-        return [System.IO.Path]::GetFullPath($Value)
+    $fileSystemValue = ConvertTo-FileSystemPath $Value
+    if ([System.IO.Path]::IsPathRooted($fileSystemValue)) {
+        return [System.IO.Path]::GetFullPath($fileSystemValue)
     }
 
-    return [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $Value))
+    return [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $fileSystemValue))
 }
 
 function Stop-CodexBarProcesses {
