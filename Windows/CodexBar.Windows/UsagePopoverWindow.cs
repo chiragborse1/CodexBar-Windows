@@ -1536,7 +1536,38 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             stack.Children.Add(MessageLine(FriendlyError(row), ErrorBrush(row), new Wpf.Thickness(0, 6, 0, 0)));
         }
 
+        if (!string.IsNullOrWhiteSpace(row.Error) && row.Metrics.Count == 0)
+        {
+            stack.Children.Add(BuildProviderRecoveryActions(row));
+        }
+
         return card;
+    }
+
+    private Wpf.FrameworkElement BuildProviderRecoveryActions(UsagePayloadRow row)
+    {
+        var actions = new List<Wpf.FrameworkElement>();
+        var settingsAction = SecondaryButton(IsMissingCliError(row.Error) ? "CLI Path" : "Set Up");
+        settingsAction.Click += (_, _) =>
+        {
+            if (!string.IsNullOrWhiteSpace(row.Provider))
+            {
+                settings.Provider = row.Provider;
+                SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+            }
+
+            ShowSettingsView();
+        };
+        actions.Add(settingsAction);
+
+        if (ProviderCatalog.DashboardUrlFor(row.Provider) is { } url)
+        {
+            var dashboard = SecondaryButton("Dashboard");
+            dashboard.Click += (_, _) => OpenUrl(url);
+            actions.Add(dashboard);
+        }
+
+        return ActionRow(actions.ToArray());
     }
 
     private Wpf.FrameworkElement CreateSetupHintCard()
