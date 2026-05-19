@@ -35,6 +35,64 @@ function Test-CommandAvailable([string] $Name) {
     return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Test-UncPath([string] $Path) {
+    return [System.IO.Path]::GetFullPath($Path).StartsWith("\\")
+}
+
+function Resolve-LocalStageRoot {
+    $localAppData = [Environment]::GetFolderPath("LocalApplicationData")
+    if ([string]::IsNullOrWhiteSpace($localAppData)) {
+        $localAppData = $env:TEMP
+    }
+
+    return Join-Path $localAppData "CodexBar-Windows\ui-dev-source"
+}
+
+function Copy-UiProjectToLocalStage([string] $RepoRoot) {
+    $sourceRoot = Join-Path $RepoRoot "Windows\CodexBar.Windows"
+    if (-not (Test-Path $sourceRoot)) {
+        throw "Missing Windows app project folder: $sourceRoot"
+    }
+
+    $stageRoot = Resolve-LocalStageRoot
+    Write-Step "Staging WSL/UNC UI source to $stageRoot"
+
+    if (Test-Path $stageRoot) {
+        Remove-Item $stageRoot -Recurse -Force
+    }
+
+    [void] (New-Item -ItemType Directory -Force -Path $stageRoot)
+    Get-ChildItem $sourceRoot -Force |
+        Where-Object { $_.Name -ne "bin" -and $_.Name -ne "obj" } |
+        ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination $stageRoot -Recurse -Force
+        }
+
+    return $stageRoot
+}
+
+function Resolve-UiProjectRoot(
+    [string] $RepoRoot,
+    [bool] $NoBuild
+) {
+    $sourceRoot = Join-Path $RepoRoot "Windows\CodexBar.Windows"
+    if (-not (Test-UncPath $RepoRoot)) {
+        return $sourceRoot
+    }
+
+    $stageRoot = Resolve-LocalStageRoot
+    if ($NoBuild) {
+        if (-not (Test-Path $stageRoot)) {
+            throw "No staged UI build exists at $stageRoot. Run ui-dev.ps1 once without -NoBuild."
+        }
+
+        Write-Step "Using staged WSL/UNC UI source at $stageRoot"
+        return $stageRoot
+    }
+
+    return Copy-UiProjectToLocalStage $RepoRoot
+}
+
 function Stop-CodexBarProcesses {
     $processes = @(Get-Process -Name "CodexBar-Windows" -ErrorAction SilentlyContinue)
     if ($processes.Count -eq 0) {
@@ -99,16 +157,23 @@ function Start-SourceUi(
         return $false
     }
 
-    $project = Join-Path $RepoRoot "Windows\CodexBar.Windows\CodexBar.Windows.csproj"
+    $projectRoot = Resolve-UiProjectRoot $RepoRoot $NoBuild
+    $project = Join-Path $projectRoot "CodexBar.Windows.csproj"
     if (-not (Test-Path $project)) {
         throw "Missing Windows app project: $project"
     }
 
     if (-not $NoBuild) {
         Write-Step "Building Windows UI ($Configuration)"
-        & dotnet build $project -c $Configuration
-        if ($LASTEXITCODE -ne 0) {
-            throw "dotnet build failed with exit code $LASTEXITCODE."
+        Push-Location $projectRoot
+        try {
+            & dotnet build $project -c $Configuration
+            if ($LASTEXITCODE -ne 0) {
+                throw "dotnet build failed with exit code $LASTEXITCODE."
+            }
+        }
+        finally {
+            Pop-Location
         }
     }
     else {
@@ -116,7 +181,7 @@ function Start-SourceUi(
     }
 
     $targetFramework = "net8.0-windows10.0.17763.0"
-    $outputDir = Join-Path $RepoRoot "Windows\CodexBar.Windows\bin\$Configuration\$targetFramework"
+    $outputDir = Join-Path $projectRoot "bin\$Configuration\$targetFramework"
     $appPath = Join-Path $outputDir "CodexBar-Windows.exe"
     $arguments = @("--window")
     if (-not $NoDemo) {
