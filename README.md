@@ -15,10 +15,14 @@ Current build status:
 - Native Windows tray app opens a compact WPF tray popover shaped after the
   macOS menu-card flow.
 - Usage includes a compact provider switcher inside the popover.
+- Usage error cards include direct recovery actions for provider setup, CLI
+  backend selection, and known provider dashboards.
 - Usage, Settings, and More now stay inside the popover instead of opening
   classic secondary windows.
 - Settings saves API keys for Windows-ready providers in Windows Credential
   Manager and injects them into CLI runs.
+- Settings includes a CLI Backend panel for selecting `CodexBarCLI.exe` when
+  testing from a dev folder or custom install.
 - Settings includes a Manual Web Session panel that can import Edge,
   Chrome/Chromium, Brave, Vivaldi, Opera, or Firefox cookies for supported
   web-session providers, import Windsurf Chromium localStorage sessions, or
@@ -67,12 +71,13 @@ compatibility view.
 First-time setup:
 
 1. Open the tray popover and click `Settings`.
-2. Pick a provider in `Provider Setup`.
-3. Choose a Windows-ready provider such as OpenRouter, OpenAI, Copilot, Claude,
+2. If the app cannot find `CodexBarCLI.exe`, use `CLI Backend` to browse to it.
+3. Pick a provider in `Provider Setup`.
+4. Choose a Windows-ready provider such as OpenRouter, OpenAI, Copilot, Claude,
    ElevenLabs, Moonshot, Kilo, or Venice.
-4. Paste the provider API key, keep `Enable provider after saving` checked, and
+5. Paste the provider API key, keep `Enable provider after saving` checked, and
    click `Save API Key`.
-5. The popover focuses that provider and refreshes against it.
+6. The popover focuses that provider and refreshes against it.
 
 For web-session providers, use `Settings` > `Manual Web Session`, select the
 provider, then click the import button for the browser where you are signed in.
@@ -95,12 +100,11 @@ and `CodexBarCLI.exe`.
 To build from source on Windows:
 
 ```powershell
-pwsh .\Windows\ui-dev.ps1
-pwsh .\Windows\dev-run.ps1
+powershell -ExecutionPolicy Bypass -File .\Windows\ui-dev.ps1
+powershell -ExecutionPolicy Bypass -File .\Windows\dev-run.ps1
 ```
 
-If PowerShell 7 is not installed, use
-`powershell -ExecutionPolicy Bypass -File .\Windows\ui-dev.ps1`.
+PowerShell 7 also works if `pwsh` is installed.
 
 `ui-dev.ps1` is the fast UI loop: it builds only the WPF Windows app, opens it
 as a normal visible window, and uses demo provider data by default so Swift and
@@ -108,14 +112,15 @@ provider credentials are not needed. `dev-run.ps1` builds a full local package,
 stops any running dev copy, launches the fresh tray app, and verifies it stayed
 running. The runnable app folder is:
 
-When the repo is opened through WSL as `\\wsl.localhost\...`, `ui-dev.ps1`
-stages the Windows UI source into `%LOCALAPPDATA%\CodexBar-Windows\ui-dev-source`
-before building because MSBuild/desktop launch behavior is more reliable from a
-local Windows path.
-
 ```text
 artifacts\codexbar-windows-x86_64
 ```
+
+When the repo is opened through WSL as `\\wsl.localhost\...`, `ui-dev.ps1`
+stages the Windows UI source into `%LOCALAPPDATA%\CodexBar-Windows\ui-dev-source`
+before building because MSBuild/desktop launch behavior is more reliable from a
+local Windows path. `dev-run.ps1` and `package-windows.ps1` also normalize WSL
+filesystem paths before resolving package locations.
 
 Manual build commands:
 

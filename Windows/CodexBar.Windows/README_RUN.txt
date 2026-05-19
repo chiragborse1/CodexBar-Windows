@@ -25,9 +25,10 @@ provider setup, diagnostics, raw CLI output, and config actions.
 
 First-time setup:
   1. Open Settings inside the popover.
-  2. Pick a provider in Provider Setup.
-  3. Paste its API key and click Save API Key.
-  4. Return to Usage.
+  2. If the app cannot find CodexBarCLI.exe, use CLI Backend to browse to it.
+  3. Pick a provider in Provider Setup.
+  4. Paste its API key and click Save API Key.
+  5. Return to Usage.
 
 For web-session providers, open Settings > Manual Web Session, pick the
 provider, and import from the browser where you are signed in. Windsurf imports

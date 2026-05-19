@@ -15,7 +15,8 @@ Bring a complete CodexBar-Windows experience to Windows users:
 
 ## Current Status
 
-- `CodexBar-Windows.exe` is a native Windows tray app built with WinForms.
+- `CodexBar-Windows.exe` is a native Windows tray app with a WinForms tray host
+  and WPF popover UI.
 - The tray app wraps `CodexBarCLI.exe` for provider usage, config validation,
   provider listing, and settings-driven refreshes.
 - `CodexBarCLI.exe` builds on `windows-latest`.
@@ -31,6 +32,10 @@ Bring a complete CodexBar-Windows experience to Windows users:
   providers, imports Windsurf Chromium localStorage sessions, supports manual
   Cookie header/session payload fallback, and focuses the popover on the
   configured provider.
+- Settings includes a CLI backend path picker for dev folders and custom
+  installs where `CodexBarCLI.exe` is not beside the app.
+- Provider error cards include direct setup, CLI backend, and dashboard actions
+  where applicable.
 - More includes diagnostics, provider compatibility, config actions, and a
   GitHub release update check.
 - Usage includes provider dashboard shortcuts for providers with known usage or
@@ -57,6 +62,7 @@ The tray app provides:
 - system tray icon and menu
 - compact CodexBar-style usage popover
 - compact provider switcher in the Usage view
+- inline recovery actions on setup/error provider cards
 - embedded More view with refresh/copy/config actions and provider
   compatibility
 - selected-provider dashboard shortcuts from the Usage view
