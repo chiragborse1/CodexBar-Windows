@@ -15,8 +15,22 @@ function Write-Step([string] $Message) {
     Write-Host "==> $Message"
 }
 
+function ConvertTo-FileSystemPath([string] $Value) {
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $Value
+    }
+
+    $fileSystemPrefix = "Microsoft.PowerShell.Core\FileSystem::"
+    if ($Value.StartsWith($fileSystemPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        return $Value.Substring($fileSystemPrefix.Length)
+    }
+
+    return $Value
+}
+
 function Resolve-RepoRoot {
-    return (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+    $resolved = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
+    return ConvertTo-FileSystemPath $resolved.ProviderPath
 }
 
 function Resolve-OptionalPath([string] $RepoRoot, [string] $Value) {
@@ -24,11 +38,12 @@ function Resolve-OptionalPath([string] $RepoRoot, [string] $Value) {
         return $null
     }
 
-    if ([System.IO.Path]::IsPathRooted($Value)) {
-        return [System.IO.Path]::GetFullPath($Value)
+    $fileSystemValue = ConvertTo-FileSystemPath $Value
+    if ([System.IO.Path]::IsPathRooted($fileSystemValue)) {
+        return [System.IO.Path]::GetFullPath($fileSystemValue)
     }
 
-    return [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $Value))
+    return [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $fileSystemValue))
 }
 
 function Test-CommandAvailable([string] $Name) {
@@ -36,7 +51,8 @@ function Test-CommandAvailable([string] $Name) {
 }
 
 function Test-UncPath([string] $Path) {
-    return [System.IO.Path]::GetFullPath($Path).StartsWith("\\")
+    $fileSystemPath = ConvertTo-FileSystemPath $Path
+    return $fileSystemPath.StartsWith("\\", [StringComparison]::Ordinal)
 }
 
 function Resolve-LocalStageRoot {
