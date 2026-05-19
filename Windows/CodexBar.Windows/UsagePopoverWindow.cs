@@ -371,6 +371,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         var root = ViewStack();
         root.Children.Add(BuildSetupStatusSection());
+        root.Children.Add(BuildCliPathSection());
 
         var scopeBox = new WpfControls.ComboBox
         {
@@ -503,6 +504,106 @@ internal sealed class UsagePopoverWindow : Wpf.Window
                 ? "The app is running with local demo data; real provider checks are skipped."
                 : "Current Windows readiness for the selected provider scope.",
             content);
+    }
+
+    private Wpf.FrameworkElement BuildCliPathSection()
+    {
+        var pathBox = new WpfControls.TextBox
+        {
+            Text = settings.CliPath ?? "",
+            MinHeight = 30,
+            FontSize = 11.5,
+            Background = Brush("#F5F5F7"),
+            BorderBrush = Brush("#D8D8DD"),
+            Foreground = Brush("#3C3C43"),
+            Padding = new Wpf.Thickness(8, 5, 8, 5),
+            TextWrapping = Wpf.TextWrapping.NoWrap,
+            VerticalScrollBarVisibility = WpfControls.ScrollBarVisibility.Disabled,
+            HorizontalScrollBarVisibility = WpfControls.ScrollBarVisibility.Auto,
+        };
+        pathBox.ToolTip = $"Optional path to {AppInfo.CliFileName}. Leave empty to use the bundled CLI beside the app.";
+
+        var resultText = Caption(CurrentCliPathMessage());
+        var saveButton = PrimaryButton("Save CLI Path");
+        var browseButton = SecondaryButton("Browse");
+        var clearButton = SecondaryButton("Use Bundled");
+
+        saveButton.Click += (_, _) =>
+        {
+            var path = pathBox.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(path) && !File.Exists(path))
+            {
+                SetResult(resultText, "That file does not exist. Choose CodexBarCLI.exe or leave the field empty.", isError: true);
+                return;
+            }
+
+            settings.CliPath = string.IsNullOrWhiteSpace(path) ? null : path;
+            SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+            SetResult(
+                resultText,
+                settings.CliPath is null
+                    ? "Using the bundled CLI or PATH lookup."
+                    : $"Using {settings.CliPath}.",
+                isError: false);
+        };
+
+        browseButton.Click += (_, _) =>
+        {
+            using var dialog = new Forms.OpenFileDialog
+            {
+                Title = $"Select {AppInfo.CliFileName}",
+                Filter = $"{AppInfo.CliFileName}|{AppInfo.CliFileName}|Executable files (*.exe)|*.exe|All files (*.*)|*.*",
+                FileName = AppInfo.CliFileName,
+                CheckFileExists = true,
+            };
+
+            var currentPath = pathBox.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(currentPath))
+            {
+                var currentDirectory = Path.GetDirectoryName(currentPath);
+                if (!string.IsNullOrWhiteSpace(currentDirectory) && Directory.Exists(currentDirectory))
+                {
+                    dialog.InitialDirectory = currentDirectory;
+                }
+            }
+            else if (Directory.Exists(AppContext.BaseDirectory))
+            {
+                dialog.InitialDirectory = AppContext.BaseDirectory;
+            }
+
+            if (dialog.ShowDialog() == Forms.DialogResult.OK)
+            {
+                pathBox.Text = dialog.FileName;
+                SetResult(resultText, "Selected CLI path. Save to apply it.", isError: false);
+            }
+        };
+
+        clearButton.Click += (_, _) =>
+        {
+            pathBox.Clear();
+            settings.CliPath = null;
+            SettingsChanged?.Invoke(this, new AppSettingsChangedEventArgs(settings));
+            SetResult(resultText, "Using the bundled CLI or PATH lookup.", isError: false);
+        };
+
+        var content = new WpfControls.StackPanel();
+        content.Children.Add(FieldLabel($"{AppInfo.CliFileName} path"));
+        content.Children.Add(pathBox);
+        content.Children.Add(ActionRow(saveButton, browseButton, clearButton));
+        content.Children.Add(resultText);
+
+        return SectionCard(
+            "CLI Backend",
+            "Point the tray UI at the backend executable when running from a dev folder or custom install.",
+            content);
+    }
+
+    private string CurrentCliPathMessage()
+    {
+        var resolved = cliRunner.ResolveExecutable();
+        return string.IsNullOrWhiteSpace(resolved)
+            ? $"{AppInfo.CliFileName} was not found. Select it here or keep it beside the app."
+            : $"Resolved CLI: {resolved}";
     }
 
     private Wpf.FrameworkElement BuildProviderSetupSection()
