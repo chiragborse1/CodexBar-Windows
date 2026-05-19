@@ -1,0 +1,134 @@
+name: Windows Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Version/tag text to embed in the package."
+        required: false
+        default: "dev"
+        type: string
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: package-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-package:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Swift 6.2.1
+        uses: compnerd/gha-setup-swift@main
+        with:
+          swift-version: swift-6.2.1-release
+          swift-build: 6.2.1-RELEASE
+          update-sdk-modules: true
+          cache: true
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Toolchain versions
+        shell: pwsh
+        run: |
+          swift --version
+          swift package --version
+          dotnet --info
+
+      - name: Resolve package version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ inputs.release_tag }}"
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            $tag = "${{ github.ref_name }}"
+          }
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            $tag = "dev"
+          }
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Build and package Windows app
+        id: package
+        shell: pwsh
+        run: |
+          ./Windows/package-windows.ps1 `
+            -ReleaseTag "${{ steps.version.outputs.tag }}" `
+            -OutputRoot "$env:RUNNER_TEMP\codexbar-windows"
+
+      - name: Dev runner smoke check
+        shell: pwsh
+        run: |
+          ./Windows/dev-run.ps1 `
+            -NoBuild `
+            -NoLaunch `
+            -Test `
+            -OutputRoot "$env:RUNNER_TEMP\codexbar-windows"
+
+      - name: Local HTTP server smoke check
+        shell: pwsh
+        run: |
+          $packageDir = "${{ steps.package.outputs.package_dir }}"
+          $cli = Join-Path $packageDir "CodexBarCLI.exe"
+          $port = Get-Random -Minimum 20000 -Maximum 50000
+          $stderr = Join-Path $env:RUNNER_TEMP "codexbar-serve.err.log"
+          $stdout = Join-Path $env:RUNNER_TEMP "codexbar-serve.out.log"
+          $process = Start-Process `
+            -FilePath $cli `
+            -ArgumentList @("serve", "--port", "$port", "--refresh-interval", "0") `
+            -WorkingDirectory $packageDir `
+            -RedirectStandardError $stderr `
+            -RedirectStandardOutput $stdout `
+            -PassThru
+
+          try {
+            $health = $null
+            for ($i = 0; $i -lt 40; $i++) {
+              Start-Sleep -Milliseconds 250
+              if ($process.HasExited) {
+                throw "CodexBarCLI serve exited early with code $($process.ExitCode). stderr: $(Get-Content $stderr -Raw)"
+              }
+
+              try {
+                $health = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$port/health" -TimeoutSec 2
+                break
+              }
+              catch {
+                $health = $null
+              }
+            }
+
+            if ($null -eq $health) {
+              throw "Health endpoint did not respond. stderr: $(Get-Content $stderr -Raw)"
+            }
+            if ($health.StatusCode -ne 200 -or $health.Content -notmatch '"status"\s*:\s*"ok"') {
+              throw "Unexpected health response: $($health.StatusCode) $($health.Content)"
+            }
+          }
+          finally {
+            if (-not $process.HasExited) {
+              Stop-Process -Id $process.Id -Force
+            }
+          }
+
+      - name: Upload Windows folder artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: codexbar-windows-x86_64
+          path: ${{ steps.package.outputs.package_dir }}
+
+      - name: Upload Windows zip artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ steps.package.outputs.asset }}
+          path: |
+            ${{ steps.package.outputs.asset_path }}
+            ${{ steps.package.outputs.sha256_path }}
