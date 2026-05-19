@@ -17,6 +17,28 @@ Settings, and More views without leaving the tray surface.
 Fast local development loop:
 
 ```powershell
+pwsh .\Windows\ui-dev.ps1
+```
+
+If PowerShell 7 is not installed, run
+`powershell -ExecutionPolicy Bypass -File .\Windows\ui-dev.ps1` instead.
+
+`ui-dev.ps1` is for UI iteration only. It stops any running
+`CodexBar-Windows.exe`, builds the WPF app in `Debug`, opens it as a normal
+taskbar-visible window, and passes `--demo` so the popover renders realistic
+provider cards without Swift, the packaged CLI, or real credentials. Useful
+variants:
+
+```powershell
+pwsh .\Windows\ui-dev.ps1 -NoBuild
+pwsh .\Windows\ui-dev.ps1 -NoDemo
+pwsh .\Windows\ui-dev.ps1 -UsePackage
+pwsh .\Windows\ui-dev.ps1 -UsePackage -PackageDir C:\Users\chira\Downloads\codexbar-windows-x86_64
+```
+
+Full local package loop:
+
+```powershell
 pwsh .\Windows\dev-run.ps1
 ```
 
@@ -45,7 +67,11 @@ For tray-visibility debugging, launch the same app as a normal taskbar window:
 
 ```powershell
 .\CodexBar-Windows.exe --window
+.\CodexBar-Windows.exe --window --demo
 ```
+
+`--demo` makes the app use built-in sample provider data instead of calling
+`CodexBarCLI.exe`.
 
 ## Install Script
 
@@ -95,6 +121,7 @@ registration, install folder, launch-at-sign-in entry, and app settings unless
 - manual smoke-test mode: `CodexBar-Windows.exe --smoke-test`
 - ConPTY bridge smoke-test mode: `CodexBar-Windows.exe --pty-bridge-smoke-test`
 - taskbar-visible test mode: `CodexBar-Windows.exe --window`
+- UI demo mode: `CodexBar-Windows.exe --window --demo`
 
 ## Provider Setup
 

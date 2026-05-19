@@ -95,11 +95,18 @@ and `CodexBarCLI.exe`.
 To build from source on Windows:
 
 ```powershell
+pwsh .\Windows\ui-dev.ps1
 pwsh .\Windows\dev-run.ps1
 ```
 
-That command builds a local package, stops any running dev copy, launches the
-fresh tray app, and verifies it stayed running. The runnable app folder is:
+If PowerShell 7 is not installed, use
+`powershell -ExecutionPolicy Bypass -File .\Windows\ui-dev.ps1`.
+
+`ui-dev.ps1` is the fast UI loop: it builds only the WPF Windows app, opens it
+as a normal visible window, and uses demo provider data by default so Swift and
+provider credentials are not needed. `dev-run.ps1` builds a full local package,
+stops any running dev copy, launches the fresh tray app, and verifies it stayed
+running. The runnable app folder is:
 
 ```text
 artifacts\codexbar-windows-x86_64
@@ -118,6 +125,7 @@ pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
 ```powershell
 CodexBar-Windows.exe
 CodexBar-Windows.exe --window
+CodexBar-Windows.exe --window --demo
 CodexBarCLI.exe --version
 CodexBarCLI.exe usage --format json --pretty
 CodexBarCLI.exe usage --format json --provider openrouter --pretty
@@ -129,7 +137,8 @@ CodexBarCLI.exe serve --port 8080 --refresh-interval 60
 ```
 
 Use `CodexBar-Windows.exe --window` when testing if Windows hides the tray
-icon; it opens the same popover as a normal taskbar-visible window.
+icon; it opens the same popover as a normal taskbar-visible window. Add
+`--demo` to show UI demo data without requiring the CLI backend.
 
 API keys saved from the Windows app are stored in Windows Credential Manager.
 Provider toggles, manual Cookie headers, and advanced provider options are
@@ -147,6 +156,10 @@ stored in `%APPDATA%\CodexBar-Windows\config.json`.
 Useful commands:
 
 ```powershell
+pwsh .\Windows\ui-dev.ps1
+pwsh .\Windows\ui-dev.ps1 -NoDemo
+pwsh .\Windows\ui-dev.ps1 -UsePackage
+powershell -ExecutionPolicy Bypass -File .\Windows\ui-dev.ps1
 pwsh .\Windows\dev-run.ps1
 pwsh .\Windows\dev-run.ps1 -NoBuild
 pwsh .\Windows\dev-run.ps1 -NoBuild -NoLaunch -Test

@@ -9,6 +9,9 @@ Run:
 If Windows hides the tray icon while testing:
   CodexBar-Windows.exe --window
 
+To view the UI with built-in demo provider data:
+  CodexBar-Windows.exe --window --demo
+
 Optional install:
   powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch
   powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch -DesktopShortcut
