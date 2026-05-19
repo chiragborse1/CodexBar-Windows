@@ -1619,6 +1619,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         if (!string.IsNullOrWhiteSpace(row.Error) && row.Metrics.Count > 0)
         {
             stack.Children.Add(MessageLine(FriendlyError(row), ErrorBrush(row), new Wpf.Thickness(0, 6, 0, 0)));
+            stack.Children.Add(ActionRow(CopyErrorButton(row)));
         }
 
         if (!string.IsNullOrWhiteSpace(row.Error) && row.Metrics.Count == 0)
@@ -1652,7 +1653,33 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             actions.Add(dashboard);
         }
 
+        if (ProviderCatalog.StatusUrlFor(row.Provider) is { } statusUrl)
+        {
+            var status = SecondaryButton("Status");
+            status.Click += (_, _) => OpenUrl(statusUrl);
+            actions.Add(status);
+        }
+
+        actions.Add(CopyErrorButton(row));
         return ActionRow(actions.ToArray());
+    }
+
+    private WpfControls.Button CopyErrorButton(UsagePayloadRow row)
+    {
+        var copyError = SecondaryButton("Copy Error");
+        copyError.Click += (_, _) =>
+        {
+            var text = string.IsNullOrWhiteSpace(row.Error) ? FriendlyError(row) : row.Error;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                statusText.Text = "No provider error to copy.";
+                return;
+            }
+
+            Wpf.Clipboard.SetText(text);
+            statusText.Text = "Provider error copied.";
+        };
+        return copyError;
     }
 
     private Wpf.FrameworkElement CreateSetupHintCard()
