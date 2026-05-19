@@ -1746,7 +1746,6 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     {
         var template = new WpfControls.ControlTemplate(typeof(WpfControls.Button));
         var border = new Wpf.FrameworkElementFactory(typeof(WpfControls.Border));
-        border.SetValue(Wpf.FrameworkElement.NameProperty, "Chrome");
         border.SetValue(WpfControls.Border.CornerRadiusProperty, new Wpf.CornerRadius(radius));
         border.SetBinding(
             WpfControls.Border.BackgroundProperty,
@@ -1769,16 +1768,14 @@ internal sealed class UsagePopoverWindow : Wpf.Window
 
         var hover = new Wpf.Trigger { Property = Wpf.UIElement.IsMouseOverProperty, Value = true };
         hover.Setters.Add(new Wpf.Setter(
-            WpfControls.Border.BackgroundProperty,
-            Brush("#F3F3F6"),
-            "Chrome"));
+            WpfControls.Control.BackgroundProperty,
+            Brush("#F3F3F6")));
         template.Triggers.Add(hover);
 
         var pressed = new Wpf.Trigger { Property = WpfControls.Button.IsPressedProperty, Value = true };
         pressed.Setters.Add(new Wpf.Setter(
-            WpfControls.Border.BackgroundProperty,
-            Brush("#E9E9EE"),
-            "Chrome"));
+            WpfControls.Control.BackgroundProperty,
+            Brush("#E9E9EE")));
         template.Triggers.Add(pressed);
 
         var disabled = new Wpf.Trigger { Property = WpfControls.Control.IsEnabledProperty, Value = false };
