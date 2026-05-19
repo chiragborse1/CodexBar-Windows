@@ -36,6 +36,12 @@ pwsh .\Windows\ui-dev.ps1 -UsePackage
 pwsh .\Windows\ui-dev.ps1 -UsePackage -PackageDir C:\Users\chira\Downloads\codexbar-windows-x86_64
 ```
 
+When the repo is opened through WSL as `\\wsl.localhost\...`, `ui-dev.ps1`
+copies `Windows\CodexBar.Windows` into
+`%LOCALAPPDATA%\CodexBar-Windows\ui-dev-source` before building. This keeps WSL
+as the editable source tree while avoiding flaky Windows desktop builds from a
+UNC path.
+
 Full local package loop:
 
 ```powershell

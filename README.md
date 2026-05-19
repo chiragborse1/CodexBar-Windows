@@ -108,6 +108,11 @@ provider credentials are not needed. `dev-run.ps1` builds a full local package,
 stops any running dev copy, launches the fresh tray app, and verifies it stayed
 running. The runnable app folder is:
 
+When the repo is opened through WSL as `\\wsl.localhost\...`, `ui-dev.ps1`
+stages the Windows UI source into `%LOCALAPPDATA%\CodexBar-Windows\ui-dev-source`
+before building because MSBuild/desktop launch behavior is more reliable from a
+local Windows path.
+
 ```text
 artifacts\codexbar-windows-x86_64
 ```
