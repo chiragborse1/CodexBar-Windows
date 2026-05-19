@@ -6,6 +6,9 @@ This folder contains the Windows tray app and the CLI backend.
 Run:
   CodexBar-Windows.exe
 
+If Windows hides the tray icon while testing:
+  CodexBar-Windows.exe --window
+
 Optional install:
   powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch
   powershell -ExecutionPolicy Bypass -File .\install.ps1 -Launch -DesktopShortcut

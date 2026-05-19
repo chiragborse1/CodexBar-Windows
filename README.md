@@ -117,6 +117,7 @@ pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
 
 ```powershell
 CodexBar-Windows.exe
+CodexBar-Windows.exe --window
 CodexBarCLI.exe --version
 CodexBarCLI.exe usage --format json --pretty
 CodexBarCLI.exe usage --format json --provider openrouter --pretty
@@ -126,6 +127,9 @@ CodexBarCLI.exe config set-cookie --provider cursor --stdin
 CodexBarCLI.exe cost --provider claude --format json --pretty
 CodexBarCLI.exe serve --port 8080 --refresh-interval 60
 ```
+
+Use `CodexBar-Windows.exe --window` when testing if Windows hides the tray
+icon; it opens the same popover as a normal taskbar-visible window.
 
 API keys saved from the Windows app are stored in Windows Credential Manager.
 Provider toggles, manual Cookie headers, and advanced provider options are

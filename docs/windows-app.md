@@ -41,6 +41,12 @@ pwsh .\Windows\package-windows.ps1 -ReleaseTag dev
 The package script copies `CodexBarCLI.exe` and Swift runtime DLLs beside
 `CodexBar-Windows.exe`. The release workflow runs the same script.
 
+For tray-visibility debugging, launch the same app as a normal taskbar window:
+
+```powershell
+.\CodexBar-Windows.exe --window
+```
+
 ## Install Script
 
 The packaged folder includes:
@@ -88,6 +94,7 @@ registration, install folder, launch-at-sign-in entry, and app settings unless
 - config file/folder shortcuts
 - manual smoke-test mode: `CodexBar-Windows.exe --smoke-test`
 - ConPTY bridge smoke-test mode: `CodexBar-Windows.exe --pty-bridge-smoke-test`
+- taskbar-visible test mode: `CodexBar-Windows.exe --window`
 
 ## Provider Setup
 
