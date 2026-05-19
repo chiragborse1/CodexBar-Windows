@@ -62,15 +62,15 @@ internal sealed class TrayApplicationContext : ApplicationContext
     {
         var menu = new ContextMenuStrip();
         menu.Items.Add("Open CodexBar", null, (_, _) => ShowPopover());
-        menu.Items.Add("Refresh Now", null, async (_, _) => await RefreshUsageAsync(forceShow: true));
+        menu.Items.Add("Refresh", null, async (_, _) => await RefreshUsageAsync(forceShow: true));
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Settings", null, (_, _) => ShowSettingsInPopover());
-        menu.Items.Add("Diagnostics", null, (_, _) => ShowDiagnosticsInPopover());
+        menu.Items.Add("Settings...", null, (_, _) => ShowSettingsInPopover());
+        menu.Items.Add("More", null, (_, _) => ShowDiagnosticsInPopover());
         menu.Items.Add("Open Config File", null, (_, _) => SafeOpen(ConfigLocator.OpenConfigFile));
         menu.Items.Add("Open Config Folder", null, (_, _) => SafeOpen(ConfigLocator.OpenConfigFolder));
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("About", null, (_, _) => ShowAbout());
-        menu.Items.Add("Exit", null, (_, _) => ExitThread());
+        menu.Items.Add("About CodexBar", null, (_, _) => ShowAbout());
+        menu.Items.Add("Quit", null, (_, _) => ExitThread());
         return menu;
     }
 
