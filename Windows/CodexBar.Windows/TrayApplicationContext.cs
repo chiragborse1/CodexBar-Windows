@@ -101,6 +101,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
             popover = new UsagePopoverWindow(
                 settings,
                 cliRunner,
+                demoMode: demoMode,
                 showInTaskbar: asWindow,
                 hideOnDeactivate: !asWindow);
             popover.SettingsChanged += (_, args) => ApplySettings(args.Settings, showBalloon: false);

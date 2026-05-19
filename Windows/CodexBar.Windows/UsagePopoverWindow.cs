@@ -27,15 +27,18 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     private PopoverView currentView = PopoverView.Usage;
     private AppSettings settings;
     private CliRunner cliRunner;
+    private readonly bool demoMode;
 
     public UsagePopoverWindow(
         AppSettings settings,
         CliRunner cliRunner,
+        bool demoMode = false,
         bool showInTaskbar = false,
         bool hideOnDeactivate = true)
     {
         this.settings = settings;
         this.cliRunner = cliRunner;
+        this.demoMode = demoMode;
 
         Title = AppInfo.DisplayName;
         Width = PopoverWidth;
@@ -149,7 +152,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         var token = refreshCancellation.Token;
 
         refreshButton.IsEnabled = false;
-        statusText.Text = $"Refreshing {settings.Provider}...";
+        statusText.Text = demoMode ? "Refreshing demo data..." : $"Refreshing {settings.Provider}...";
         footerText.Text = "";
 
         try
@@ -177,7 +180,9 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             if (currentView == PopoverView.Usage)
             {
                 statusText.Text = result.Succeeded
-                    ? $"Updated {DateTime.Now:t} in {stopwatch.Elapsed.TotalSeconds:0.0}s"
+                    ? demoMode
+                        ? $"Demo data updated {DateTime.Now:t}"
+                        : $"Updated {DateTime.Now:t} in {stopwatch.Elapsed.TotalSeconds:0.0}s"
                     : $"Updated with provider errors, code {result.ExitCode}";
                 footerText.Text = rows.Count == 0
                     ? "No provider usage returned."
@@ -238,7 +243,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         });
         statusText = new WpfControls.TextBlock
         {
-            Text = "Ready",
+            Text = demoMode ? "Demo data" : "Ready",
             FontSize = 11,
             Foreground = Brush("#6E6E73"),
             Margin = new Wpf.Thickness(0, 1, 0, 0),
@@ -325,13 +330,19 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             cardsStack.Children.Clear();
             cardsStack.Children.Add(BuildProviderSwitcherSection(lastRows));
             cardsStack.Children.Add(MenuDivider(new Wpf.Thickness(0, 3, 0, 7)));
+            if (demoMode)
+            {
+                cardsStack.Children.Add(CreateDemoModeCard());
+            }
             cardsStack.Children.Add(InfoCard(
                 "No usage loaded yet",
-                "Refresh to load provider usage from the bundled CLI.",
+                demoMode
+                    ? "Refresh to render built-in sample provider usage."
+                    : "Refresh to load provider usage from the bundled CLI.",
                 Brush("#6E6E73")));
             cardsStack.Children.Add(MenuDivider());
             cardsStack.Children.Add(BuildUsageActionSection());
-            footerText.Text = "Waiting for first refresh.";
+            footerText.Text = demoMode ? "Waiting for demo refresh." : "Waiting for first refresh.";
         }
     }
 
@@ -1019,6 +1030,11 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         cardsStack.Children.Clear();
         cardsStack.Children.Add(BuildProviderSwitcherSection(rows));
         cardsStack.Children.Add(MenuDivider(new Wpf.Thickness(0, 3, 0, 7)));
+        if (demoMode)
+        {
+            cardsStack.Children.Add(CreateDemoModeCard());
+        }
+
         if (rows.Count == 0)
         {
             cardsStack.Children.Add(CreateEmptyState(result));
@@ -1391,6 +1407,38 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         return card;
     }
 
+    private Wpf.FrameworkElement CreateDemoModeCard()
+    {
+        var card = new WpfControls.Border
+        {
+            Background = Brush("#EEF2FF"),
+            BorderBrush = Brush("#D7DEFF"),
+            BorderThickness = new Wpf.Thickness(1),
+            CornerRadius = new Wpf.CornerRadius(8),
+            Padding = new Wpf.Thickness(10, 8, 10, 9),
+            Margin = new Wpf.Thickness(0, 0, 0, 8),
+        };
+
+        var stack = new WpfControls.StackPanel();
+        stack.Children.Add(new WpfControls.TextBlock
+        {
+            Text = "Demo data",
+            FontSize = 12.5,
+            FontWeight = Wpf.FontWeights.SemiBold,
+            Foreground = Brush("#1D1D1F"),
+        });
+        stack.Children.Add(new WpfControls.TextBlock
+        {
+            Text = "These rows are generated locally for UI testing. Start without --demo to refresh real provider usage.",
+            FontSize = 11,
+            Foreground = Brush("#4B5563"),
+            TextWrapping = Wpf.TextWrapping.Wrap,
+            Margin = new Wpf.Thickness(0, 3, 0, 0),
+        });
+        card.Child = stack;
+        return card;
+    }
+
     private Wpf.FrameworkElement CreateMetric(UsagePayloadMetric metric, WpfMedia.Brush accent)
     {
         var stack = new WpfControls.StackPanel
@@ -1447,6 +1495,18 @@ internal sealed class UsagePopoverWindow : Wpf.Window
                 ? $"CLI exited with code {result.ExitCode}."
                 : result.CombinedOutput.Trim();
 
+        var stack = new WpfControls.StackPanel();
+        stack.Children.Add(MessageLine(
+            text,
+            result.Succeeded ? Brush("#6E6E73") : Brush("#B42318"),
+            new Wpf.Thickness(0)));
+
+        var settings = PrimaryButton("Settings");
+        settings.Click += (_, _) => ShowSettingsView();
+        var more = SecondaryButton("More");
+        more.Click += (_, _) => ShowDiagnosticsView();
+        stack.Children.Add(ActionRow(settings, more));
+
         return new WpfControls.Border
         {
             Background = Brush("#F5F5F7"),
@@ -1454,10 +1514,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             BorderThickness = new Wpf.Thickness(1),
             CornerRadius = new Wpf.CornerRadius(8),
             Padding = new Wpf.Thickness(10),
-            Child = MessageLine(
-                text,
-                result.Succeeded ? Brush("#6E6E73") : Brush("#B42318"),
-                new Wpf.Thickness(0)),
+            Child = stack,
         };
     }
 
