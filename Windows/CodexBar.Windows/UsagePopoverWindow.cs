@@ -6,6 +6,7 @@ using WpfData = System.Windows.Data;
 using WpfEffects = System.Windows.Media.Effects;
 using WpfInput = System.Windows.Input;
 using WpfMedia = System.Windows.Media;
+using WpfShapes = System.Windows.Shapes;
 
 namespace CodexBar.Windows;
 
@@ -1239,13 +1240,7 @@ internal sealed class UsagePopoverWindow : Wpf.Window
         WpfControls.Grid.SetColumn(text, 0);
         grid.Children.Add(text);
 
-        var chevron = new WpfControls.TextBlock
-        {
-            Text = ">",
-            FontSize = 13,
-            Foreground = Brush("#8E8E93"),
-            VerticalAlignment = Wpf.VerticalAlignment.Center,
-        };
+        var chevron = ChevronIcon(Brush("#8E8E93"));
         WpfControls.Grid.SetColumn(chevron, 1);
         grid.Children.Add(chevron);
 
@@ -1940,6 +1935,20 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             },
         };
     }
+
+    private static Wpf.FrameworkElement ChevronIcon(WpfMedia.Brush stroke) =>
+        new WpfShapes.Path
+        {
+            Data = WpfMedia.Geometry.Parse("M 1 1 L 5 5 L 1 9"),
+            Stroke = stroke,
+            StrokeThickness = 1.6,
+            StrokeStartLineCap = WpfMedia.PenLineCap.Round,
+            StrokeEndLineCap = WpfMedia.PenLineCap.Round,
+            StrokeLineJoin = WpfMedia.PenLineJoin.Round,
+            Width = 6,
+            Height = 10,
+            VerticalAlignment = Wpf.VerticalAlignment.Center,
+        };
 
     private static WpfControls.Border StatusPill(string text, WpfMedia.Brush foreground, WpfMedia.Brush background) =>
         new()
