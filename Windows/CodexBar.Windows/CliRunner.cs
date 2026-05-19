@@ -5,10 +5,12 @@ namespace CodexBar.Windows;
 internal sealed class CliRunner
 {
     private readonly AppSettings settings;
+    private readonly bool demoMode;
 
-    public CliRunner(AppSettings settings)
+    public CliRunner(AppSettings settings, bool demoMode = false)
     {
         this.settings = settings;
+        this.demoMode = demoMode;
     }
 
     public string? ResolveExecutable()
@@ -28,13 +30,19 @@ internal sealed class CliRunner
     }
 
     public Task<CliResult> VersionAsync(CancellationToken cancellationToken) =>
-        RunAsync(["--version"], TimeSpan.FromSeconds(15), cancellationToken);
+        demoMode
+            ? Task.FromResult(DemoResult($"{AppInfo.DisplayName} ui-dev-demo"))
+            : RunAsync(["--version"], TimeSpan.FromSeconds(15), cancellationToken);
 
     public Task<CliResult> ValidateConfigAsync(CancellationToken cancellationToken) =>
-        RunAsync(["config", "validate", "--format", "json", "--pretty"], TimeSpan.FromSeconds(20), cancellationToken);
+        demoMode
+            ? Task.FromResult(DemoResult("[]"))
+            : RunAsync(["config", "validate", "--format", "json", "--pretty"], TimeSpan.FromSeconds(20), cancellationToken);
 
     public Task<CliResult> ProvidersAsync(CancellationToken cancellationToken) =>
-        RunAsync(["config", "providers"], TimeSpan.FromSeconds(20), cancellationToken);
+        demoMode
+            ? Task.FromResult(DemoResult("codex: enabled default (Codex)\nopenai: enabled (OpenAI)\nclaude: disabled (Claude)"))
+            : RunAsync(["config", "providers"], TimeSpan.FromSeconds(20), cancellationToken);
 
     public Task<CliResult> SetApiKeyAsync(
         string provider,
@@ -58,6 +66,11 @@ internal sealed class CliRunner
             arguments.Add("--no-enable");
         }
 
+        if (demoMode)
+        {
+            return Task.FromResult(DemoResult("{\"saved\":true,\"demo\":true}"));
+        }
+
         return RunAsync(
             arguments,
             TimeSpan.FromSeconds(20),
@@ -69,10 +82,12 @@ internal sealed class CliRunner
         string provider,
         bool enabled,
         CancellationToken cancellationToken) =>
-        RunAsync(
-            ["config", enabled ? "enable" : "disable", "--provider", provider, "--format", "json", "--pretty"],
-            TimeSpan.FromSeconds(20),
-            cancellationToken);
+        demoMode
+            ? Task.FromResult(DemoResult($"{{\"provider\":\"{provider}\",\"enabled\":{enabled.ToString().ToLowerInvariant()},\"demo\":true}}"))
+            : RunAsync(
+                ["config", enabled ? "enable" : "disable", "--provider", provider, "--format", "json", "--pretty"],
+                TimeSpan.FromSeconds(20),
+                cancellationToken);
 
     public Task<CliResult> SetCookieHeaderAsync(
         string provider,
@@ -96,6 +111,11 @@ internal sealed class CliRunner
             arguments.Add("--no-enable");
         }
 
+        if (demoMode)
+        {
+            return Task.FromResult(DemoResult("{\"saved\":true,\"demo\":true}"));
+        }
+
         return RunAsync(
             arguments,
             TimeSpan.FromSeconds(20),
@@ -104,16 +124,20 @@ internal sealed class CliRunner
     }
 
     public Task<CliResult> UsageTextAsync(CancellationToken cancellationToken) =>
-        RunAsync(
-            UsageArguments("text", noColor: true),
-            TimeSpan.FromSeconds(90),
-            cancellationToken);
+        demoMode
+            ? Task.FromResult(DemoResult("Codex: 66% left\nOpenAI: 81% left\nClaude: setup needed"))
+            : RunAsync(
+                UsageArguments("text", noColor: true),
+                TimeSpan.FromSeconds(90),
+                cancellationToken);
 
     public Task<CliResult> UsageJsonAsync(CancellationToken cancellationToken) =>
-        RunAsync(
-            UsageArguments("json", pretty: true),
-            TimeSpan.FromSeconds(90),
-            cancellationToken);
+        demoMode
+            ? Task.FromResult(DemoResult(DemoUsageJson))
+            : RunAsync(
+                UsageArguments("json", pretty: true),
+                TimeSpan.FromSeconds(90),
+                cancellationToken);
 
     public async Task<CliResult> RunAsync(
         IReadOnlyList<string> arguments,
@@ -248,6 +272,81 @@ internal sealed class CliRunner
 
         return arguments;
     }
+
+    private static CliResult DemoResult(string standardOutput) =>
+        new(0, standardOutput, "", false);
+
+    private static readonly string DemoUsageJson = """
+[
+  {
+    "provider": "codex",
+    "account": "demo@example.com",
+    "source": "ui-dev demo",
+    "status": {
+      "indicator": "Ready",
+      "description": "Demo data"
+    },
+    "usage": {
+      "updatedAt": "demo",
+      "primary": {
+        "usedPercent": 34,
+        "resetDescription": "resets in 2h 18m"
+      },
+      "secondary": {
+        "usedPercent": 58,
+        "resetDescription": "weekly reset Friday"
+      }
+    },
+    "credits": {
+      "remaining": 124.5,
+      "updatedAt": "demo"
+    }
+  },
+  {
+    "provider": "openai",
+    "account": "platform demo",
+    "source": "api",
+    "status": {
+      "indicator": "Ready",
+      "description": "API key path"
+    },
+    "usage": {
+      "updatedAt": "demo",
+      "primary": {
+        "usedPercent": 19,
+        "resetDescription": "billing cycle resets June 1"
+      }
+    },
+    "credits": {
+      "remaining": 42.75,
+      "updatedAt": "demo"
+    }
+  },
+  {
+    "provider": "claude",
+    "source": "setup",
+    "error": {
+      "message": "No available fetch strategy for claude."
+    }
+  },
+  {
+    "provider": "windsurf",
+    "account": "localStorage demo",
+    "source": "web",
+    "status": {
+      "indicator": "Ready",
+      "description": "Chromium session import"
+    },
+    "usage": {
+      "updatedAt": "demo",
+      "primary": {
+        "usedPercent": 72,
+        "resetDescription": "resets tomorrow"
+      }
+    }
+  }
+]
+""";
 
     private static void TryKill(Process process)
     {

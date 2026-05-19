@@ -33,7 +33,9 @@ internal static class Program
         var forceWindow = args.Contains("--window", StringComparer.OrdinalIgnoreCase) ||
             args.Contains("--foreground", StringComparer.OrdinalIgnoreCase) ||
             args.Contains("--show-window", StringComparer.OrdinalIgnoreCase);
-        using var context = new TrayApplicationContext(forceWindow);
+        var demoMode = args.Contains("--demo", StringComparer.OrdinalIgnoreCase) ||
+            args.Contains("--ui-demo", StringComparer.OrdinalIgnoreCase);
+        using var context = new TrayApplicationContext(forceWindow, demoMode);
         Application.Run(context);
         return 0;
     }

@@ -5,15 +5,17 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly NotifyIcon notifyIcon;
     private readonly System.Windows.Forms.Timer refreshTimer;
     private readonly bool forceWindow;
+    private readonly bool demoMode;
     private AppSettings settings;
     private CliRunner cliRunner;
     private UsagePopoverWindow? popover;
 
-    public TrayApplicationContext(bool forceWindow = false)
+    public TrayApplicationContext(bool forceWindow = false, bool demoMode = false)
     {
         this.forceWindow = forceWindow;
+        this.demoMode = demoMode;
         settings = AppSettings.Load();
-        cliRunner = new CliRunner(settings);
+        cliRunner = new CliRunner(settings, demoMode);
 
         notifyIcon = new NotifyIcon
         {
@@ -144,7 +146,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
     {
         settings = newSettings;
         settings.Save();
-        cliRunner = new CliRunner(settings);
+        cliRunner = new CliRunner(settings, demoMode);
         ApplyTimerInterval();
 
         if (popover is not null && !popover.IsClosed)
