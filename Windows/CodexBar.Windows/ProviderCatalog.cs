@@ -136,6 +136,16 @@ internal static class ProviderCatalog
     public static bool SupportsConfigApiKey(string id) =>
         ApiKeyProviderIds.Any(provider => string.Equals(provider, id, StringComparison.OrdinalIgnoreCase));
 
+    public static bool SupportsBrowserSession(string id) =>
+        CookieProviderIds.Any(provider => string.Equals(provider, id, StringComparison.OrdinalIgnoreCase));
+
+    public static string NotesFor(string id)
+    {
+        var entry = Entries.FirstOrDefault(
+            item => string.Equals(item.Id, id, StringComparison.OrdinalIgnoreCase));
+        return entry?.Notes ?? "";
+    }
+
     public static string? DashboardUrlFor(string id) =>
         id.ToLowerInvariant() switch
         {

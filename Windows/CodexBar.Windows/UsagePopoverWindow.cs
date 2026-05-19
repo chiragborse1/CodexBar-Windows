@@ -2054,9 +2054,36 @@ internal sealed class UsagePopoverWindow : Wpf.Window
             return "Add this provider's API key in Settings to enable Windows usage checks.";
         }
 
+        if (IsMissingCliError(row.Error))
+        {
+            return $"Could not find {AppInfo.CliFileName}. Put it beside {AppInfo.DisplayName}.exe or set the CLI path in Settings.";
+        }
+
+        if (IsNoFetchStrategyError(row.Error))
+        {
+            if (ProviderCatalog.SupportsConfigApiKey(row.Provider) &&
+                ProviderCatalog.SupportsBrowserSession(row.Provider))
+            {
+                return "Save an API key or import a browser session in Settings, then refresh this provider.";
+            }
+
+            if (ProviderCatalog.SupportsConfigApiKey(row.Provider))
+            {
+                return "Save this provider's API key in Settings, then refresh usage.";
+            }
+
+            if (ProviderCatalog.SupportsBrowserSession(row.Provider))
+            {
+                return "Import a signed-in browser session in Settings, then refresh usage.";
+            }
+        }
+
         if (IsWindowsPendingError(row.Error))
         {
-            return "This source is not available on Windows yet.";
+            var notes = ProviderCatalog.NotesFor(row.Provider);
+            return string.IsNullOrWhiteSpace(notes)
+                ? "This source is not available on Windows yet."
+                : $"This source needs a Windows-specific setup path. {notes}";
         }
 
         return row.Error;
@@ -2071,6 +2098,12 @@ internal sealed class UsagePopoverWindow : Wpf.Window
     private static bool IsBroadProviderScope(string provider) =>
         string.Equals(provider, "enabled", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(provider, "all", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsMissingCliError(string error) =>
+        error.Contains($"Could not find {AppInfo.CliFileName}", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsNoFetchStrategyError(string error) =>
+        error.Contains("No available fetch strategy", StringComparison.OrdinalIgnoreCase);
 
     private static int RowSortRank(UsagePayloadRow row)
     {
